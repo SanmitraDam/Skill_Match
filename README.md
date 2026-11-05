@@ -1,66 +1,72 @@
-# 🧬 SkillMatch DNA — Unified Master Architecture Platform
+# SkillMatch
 
-## 🏛️ Technical Manifesto
+SkillMatch contains a FastAPI backend and a Next.js web client. Application code is grouped under `backend/` and `frontend/`; shared configuration, local development launchers, and project documentation stay at the repository root.
 
-SkillMatch DNA is an enterprise-grade AI ecosystem designed to bridge the gap between raw technical resumes and actual production readiness. Unlike traditional ATS systems that rely on keyword matching, SkillMatch DNA implements a **multi-modal verification pipeline** that combines Vector Similarity, Computerized Adaptive Testing (CAT), and Acoustic Prosody Analysis to determine a candidate's true "Technical DNA."
+## Project layout
 
----
+| Path | Purpose |
+| --- | --- |
+| `backend/app/` | FastAPI API routers, services, models, schemas, configuration, and static assets |
+| `backend/ai_services/` | Supporting AI service entry point |
+| `backend/alembic/`, `backend/alembic.ini` | Backend database migration environment |
+| `backend/data/` | Question bank data and generated datasets |
+| `backend/scripts/`, `backend/tests/` | Backend maintenance tools and test suite |
+| `backend/contracts/`, `backend/edge/`, `backend/infra/` | Backend-related contracts and deployment infrastructure |
+| `frontend/dna-web/` | Next.js application and its Node dependencies |
+| `.env`, `.env.example` | Shared local configuration; `.env` stays at the repository root |
+| `skillmatch.db` | Existing local SQLite database; stays at the repository root |
 
-## 🚀 Core Architectural Pillars
+The Next.js app keeps its own `package.json` and lockfile in `frontend/dna-web`. The root `package.json` provides convenience commands for that app.
 
-### 1. Production Input DNA Matrix
-- **Vector-Based Matching**: Utilizes `all-MiniLM-L6-v2` embeddings for semantic alignment between candidate resumes and job descriptions.
-- **PII Anonymization**: Built-in guardrails to scrub personal identifiers, ensuring bias-free, meritocratic matching.
-- **Skill Taxonomy**: Automatic categorization of skills into Hard Technical, Soft Skills, and Domain Tools.
+## Run locally
 
-### 2. Adaptive CAT Quiz Studio
-- **IRT 2PL Model**: Implements Item Response Theory (2-Parameter Logistic model) to dynamically calibrate question difficulty based on latent ability ($\theta$).
-- **Dynamic Difficulty Scaling**: Questions are selected in real-time to maintain a target probability of success, maximizing information gain per question.
-- **Calibrated Scoring**: Final scores are weighted by peak difficulty reached and latent ability, providing a more accurate readiness metric than simple percentages.
+Create the Python environment from the repository root:
 
-### 3. Spatial Voice AI Interview Room
-- **Acoustic Prosody Analysis**: Analyzes speech cadence (WPM), filler word density, and hesitation indices to evaluate communication clarity.
-- **Speculative Decoding**: Employs a draft-model architecture (Llama-3.2-1B $\rightarrow$ Llama-3.3-70B) to achieve ultra-low Time-to-First-Token (TTFT < 35ms) for natural conversation.
-- **Research-Grade Rubrics**: Evaluates answers against architectural ontologies, specifically detecting trade-off analysis and failure-mode resilience.
-
-### 4. Memory Retention Studio
-- **SM-2 Spaced Repetition**: Integration of the SuperMemo-2 algorithm to optimize long-term knowledge retention of identified skill gaps.
-- **Ebbinghaus Decay Modeling**: Tracks memory decay curves to trigger proactive "injection" of review cards before knowledge is lost.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Backend** | FastAPI, SQLAlchemy, Pydantic | High-performance async API & Data Modeling |
-| **AI/ML** | Llama-3 (Groq), Gemini, Faster-Whisper | LLM Reasoning, STT, and Semantic Analysis |
-| **Frontend** | Next.js 15, React 19, Zustand | Modern, Type-safe UI Architecture |
-| **3D/UX** | Three.js, R3F, Framer Motion | Immersive "Elite Morphism" Visuals |
-| **Security** | Ed25519, ZK-Compliance | Cryptographic Signatures & Privacy-Preserving Proofs |
-
----
-
-## 📈 Readiness Metric: The CCRS
-The platform culminates in the **Composite Career Readiness Score (CCRS)**:
-$$\text{CCRS} = (0.30 \times \text{Vector Match}) + (0.35 \times \text{CAT Quiz}) + (0.35 \times \text{Voice Interview})$$
-A score $\ge 80\%$ triggers the issuance of a verifiable **OpenBadges 3.0** digital credential.
-
----
-
-## 🏁 Getting Started
-
-### Backend
 ```bash
-cd app
-pip install -r requirements.txt
-python main.py
+python -m venv .venv
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS/Linux:        source .venv/bin/activate
+pip install -r backend/requirements.txt
 ```
 
-### Frontend
+Copy `.env.example` to `.env` if needed, then set the values for the services you use. The API and frontend load this root-level file.
+
+### Backend
+
+From the repository root:
+
+```bash
+./run_backend.sh
+```
+
+The API is at `http://127.0.0.1:8000`, with interactive documentation at `http://127.0.0.1:8000/docs`.
+
+### Next.js frontend
+
 ```bash
 cd frontend/dna-web
 npm install
 npm run dev
 ```
->>>>>>> 6bd1974 (Initial commit: SkillMatch AI platform with dual-theme Next.js frontend, FastAPI backend, and execution scripts)
+
+The web client is at `http://localhost:3000`. From the root, `./run_frontend.sh` starts it and installs dependencies if needed.
+
+### Backend migrations
+
+Run Alembic from the repository root with the backend configuration:
+
+```bash
+alembic -c backend/alembic.ini upgrade head
+```
+
+### Backend tests
+
+From the repository root:
+
+```bash
+pytest backend/tests/
+```
+
+### Both main applications
+
+On systems with Bash, Python, and Node.js installed, run `./run.sh` to start the FastAPI API and Next.js client together.

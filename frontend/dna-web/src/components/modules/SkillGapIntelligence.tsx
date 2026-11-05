@@ -311,7 +311,7 @@ export function SkillGapIntelligence() {
               <CheckCircle2 size={14} /> Demonstrated Skills (8)
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {["Python", "Data Structures & Algorithms", "DBMS", "OOP", "Problem Solving", "Streamlit", "Communication", "Teamwork"].map((s, i) => (
+              {["Python", "Data Structures & Algorithms", "DBMS", "OOP", "Problem Solving", "TypeScript", "Communication", "Teamwork"].map((s, i) => (
                 <span key={i} className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-xs font-medium">
                   ✓ {s}
                 </span>

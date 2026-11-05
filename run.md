@@ -11,7 +11,6 @@ This guide provides instructions to set up, configure, and run the SkillMatch pl
 | **Frontend Web UI** | Next.js 14, React 18, Three.js, Tailwind CSS | `http://localhost:3000` | 3D interactive career readiness UI, ATS parser, and coding studio |
 | **AI Engine / Backend** | FastAPI, Uvicorn, SQLAlchemy, spaCy | `http://127.0.0.1:8000` | REST API, vector matching, prosody analytics, and scoring |
 | **API Documentation** | Swagger UI / OpenAPI | `http://127.0.0.1:8000/docs` | Interactive API explorer & contract testing |
-| **Streamlit Portal** *(Optional)* | Streamlit | `http://localhost:8501` | Alternative candidate & assessment interface |
 
 ---
 
@@ -109,7 +108,7 @@ STORAGE_TYPE=local
 2. **Install Python dependencies:**
    ```bash
    pip install --upgrade pip
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
    ```
 
 3. **Download spaCy language model *(Optional)*:**
@@ -155,7 +154,7 @@ Using bash script:
 ```
 Or directly:
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn --app-dir backend app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 - Access Health Check: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 - Interactive Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
@@ -171,17 +170,6 @@ cd frontend/dna-web
 npm run dev
 ```
 - Access Web App: [http://localhost:3000](http://localhost:3000)
-
-### Terminal 3: Streamlit Interface *(Optional)*
-Using bash script:
-```bash
-./run_streamlit.sh
-```
-Or directly:
-```bash
-python -m streamlit run streamlit_app.py
-```
-- Access Streamlit UI: [http://localhost:8501](http://localhost:8501)
 
 ---
 
@@ -209,7 +197,7 @@ curl http://127.0.0.1:8000/health
 
 ### Running Backend Pytest Suite:
 ```bash
-pytest tests/
+pytest backend/tests/
 ```
 
 ---

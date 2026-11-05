@@ -5,7 +5,7 @@
 ====================================================================================================
 SKILLMATCH AUTONOMOUS AI PLATFORM — MASTER ENGINEERING MANUAL
 Document Version: 26.0.0-PRODUCTION-DNA-MATRIX-NEUROMORPHIC-SINGULARITY
-Target Stack: Python 3.11+, FastAPI (91+ API Modules), Next.js 15 (App Router), React 19, Three.js, Streamlit
+Target Stack: Python 3.11+, FastAPI (91+ API Modules), Next.js 15 (App Router), React 19, Three.js
 Operating Cost: $0.00 / Month (100% Free-Tier & Local Open-Source Execution Compatible)
 ====================================================================================================
 ```
@@ -16,7 +16,7 @@ Operating Cost: $0.00 / Month (100% Free-Tier & Local Open-Source Execution Comp
 1. [Executive Overview & Paradigm Shift](#1-executive-overview--paradigm-shift)
 2. [Project Foundations & Architectural Philosophy](#2-project-foundations--architectural-philosophy)
    - 2.1 The Closed-Loop AI Career Readiness Cycle
-   - 2.2 Dual-Frontend Topology
+   - 2.2 Frontend Architecture
    - 2.3 Unified Asynchronous FastAPI Gateway
    - 2.4 Zero-Cost Budget Architecture ($0.00/Month)
 3. [Technology Stack & Dependency Matrix](#3-technology-stack--dependency-matrix)
@@ -42,7 +42,7 @@ Operating Cost: $0.00 / Month (100% Free-Tier & Local Open-Source Execution Comp
    - Feature 12: Enterprise ATS Gateway & Offer Clearance (`/ats-gateway`, `/offer-clearance`)
    - Feature 13: Talent Liquidity Pools & SkillSwap AMM (v1/v2) (`/skill-amm`, `/skill-amm-v2`, `/utdao`, `/utdao-v2`, `/staking`)
    - Feature 14: Recruiter Hub, Hiring Matrix & Executive Co-Pilot (`/recruiter`, `/executive-copilot`, `/talent-mobility`)
-   - Feature 15: Dual-Frontend Visual Design Systems (Next.js 15 3D Spatial Canvas + Streamlit Cyber-Neon Portal)
+   - Feature 15: Frontend Visual Design System (Next.js 15 3D Spatial Canvas)
 7. [Complete REST API Catalog & Integration Guide](#7-complete-rest-api-catalog--integration-guide)
 8. [Database Schema & SQLAlchemy ORM Models](#8-database-schema--sqlalchemy-orm-models)
 9. [Verification, Testing & Quality Assurance](#9-verification-testing--quality-assurance)
@@ -100,17 +100,15 @@ flowchart LR
     Roadmap -->|Re-Test Loop| CAT
 ```
 
-### 2.2 Dual-Frontend Topology
+### 2.2 Frontend Architecture
 SkillMatch provides two synchronized frontend interfaces:
 1. **Next.js 15 3D Spatial Canvas (`frontend/dna-web`)**:
    - Built on Next.js 15 (App Router), React 19, Three.js, React Three Fiber, Framer Motion, Tailwind CSS, and Zustand.
    - Provides a cinematic **Bioluminescent Obsidian Prism** aesthetic with 3D DNA double helixes, audio-reactive spheres, and 60+ modular workspaces in `Workspace.tsx`.
-2. **Streamlit Cyber-Neon Portal (`streamlit_app.py`)**:
-   - Built on Streamlit 1.30+ with custom CSS tokens matching the exact dark/neon cyberpunk color palette.
    - Designed for instant zero-configuration local execution, featuring live pipeline status indicators, PII masking toggles, quick-load demo profiles, and deep gap intelligence diagnostics.
 
 ### 2.3 Unified Asynchronous FastAPI Gateway
-All AI processing, vector mathematics, proctoring streams, and database interactions are unified under a single **FastAPI** application (`app/main.py`):
+All AI processing, vector mathematics, proctoring streams, and database interactions are unified under a single **FastAPI** application (`backend/app/main.py`):
 - Exposes **91+ specialized API router modules** and **194 mounted endpoints**.
 - Provides backwards-compatible `/api/v1` aliases and Gateway route signatures.
 - Serves the compiled static frontend files and static audio directories.
@@ -149,7 +147,6 @@ SkillMatch is intentionally designed to run permanently on free-tier, open-sourc
 | **3D Graphics** | Three.js & React Three Fiber | `@react-three/fiber` | 3D DNA Double Helix, AudioSphere, Spatial Canvas |
 | **Frontend State** | Zustand | Latest | Client-side spatial and assessment state store |
 | **Styling** | Tailwind CSS & Framer Motion | Latest | Obsidian Prism theme, glassmorphic animations |
-| **Frontend Portal** | Streamlit | `1.30+` | Fast-start cyber-neon interactive portal |
 
 ---
 
@@ -183,8 +180,8 @@ source .venv/bin/activate
 #### Step 3: Install Python Backend Dependencies
 ```bash
 pip install --upgrade pip
-pip install -r requirements.txt
-pip install streamlit presidio-analyzer presidio-anonymizer
+pip install -r backend/requirements.txt
+pip install presidio-analyzer presidio-anonymizer
 python -m spacy download en_core_web_sm
 ```
 
@@ -241,23 +238,13 @@ The database schema and initial demonstration fixtures initialize automatically 
 python run_local.py
 
 # Or directly via Uvicorn:
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn --app-dir backend app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 * **API Gateway**: `http://localhost:8000`
 * **Swagger API Docs**: `http://localhost:8000/docs`
 * **Health Check**: `http://localhost:8000/health`
 
-#### Option B: Running the Streamlit Cyber-Neon Portal
-```bash
-# Windows one-click batch script:
-.\run_streamlit.bat
-
-# Or directly via Streamlit command:
-streamlit run streamlit_app.py
-```
-* **Streamlit Portal**: `http://localhost:8501`
-
-#### Option C: Running the Next.js 15 Spatial 3D Web App
+#### Option B: Running the Next.js 15 Spatial 3D Web App
 ```bash
 cd frontend/dna-web
 npm run dev
@@ -270,62 +257,23 @@ npm run dev
 
 ```
 Skill_Match/
-├── app/
-│   ├── api/                    # 91 API Router modules
-│   │   ├── auth.py             # User registration, login, JWT issuance
-│   │   ├── skills.py           # Resume & JD parsing, vector matching
-│   │   ├── dna_matrix.py       # Production Input DNA Matrix Engine endpoints
-│   │   ├── quiz.py             # Adaptive CAT session handling
-│   │   ├── interview.py        # Speech-to-Text & Edge-TTS voice mock interviews
-│   │   ├── readiness.py        # Composite Readiness Score & Roadmap generator
-│   │   ├── gap_intelligence.py # Skill gap impact analysis
-│   │   ├── vision_proctor.py   # WebCam gaze tracking & face detection
-│   │   ├── audio_proctor.py    # Acoustic anomaly detection
-│   │   ├── browser_guard.py    # Focus loss & clipboard protection
-│   │   ├── proctoring_pts.py   # Composite Proctoring Trust Score (PTS)
-│   │   ├── compliance.py       # Four-fifths disparate impact audit
-│   │   ├── ats_gateway.py      # Workday / Greenhouse / Lever integrations
-│   │   ├── skill_amm.py        # SkillSwap AMM Liquidity Pools
-│   │   └── ...                 # Total 91 routers (PQC, RL, QAOA, ZK, etc.)
-│   ├── core/
-│   │   └── config.py           # Pydantic Settings & environment variables
-│   ├── models/
-│   │   ├── database.py         # SQLAlchemy engine, session factory, schema migrator
-│   │   └── models.py           # 23+ Database ORM entities
-│   ├── schemas/                # Pydantic request/response models
-│   ├── services/               # 99 Backend business logic services
-│   │   ├── dna_matrix_engine.py# Production Input DNA Matrix & Lightcast taxonomy
-│   │   ├── cat_engine.py       # IRT adaptive quiz generation
-│   │   ├── voice_interview.py  # Faster-Whisper + Edge-TTS pipeline
-│   │   ├── readiness.py        # CCRS score synthesizer & roadmap generator
-│   │   ├── gap_intelligence.py # Priority gap scoring & salary deficit modeling
-│   │   ├── vector_matcher.py   # 384-d dense embedding cosine matcher
-│   │   └── ...                 # 99 total domain services
-│   ├── static/                 # Static assets, generated MP3 audio files
-│   └── main.py                 # Application bootstrap & route registration
+├── backend/
+│   ├── app/                    # FastAPI routers, services, models, schemas, and static assets
+│   ├── ai_services/            # Supporting AI service entry point
+│   ├── alembic/                # Backend database migrations
+│   ├── contracts/              # Smart contracts used by backend features
+│   ├── data/                   # Question bank data and generated datasets
+│   ├── edge/, infra/           # Edge and deployment infrastructure
+│   ├── scripts/, tests/        # Backend utilities and Python test suite
+│   └── requirements.txt        # Python dependencies
 ├── frontend/
-│   └── dna-web/                # Next.js 15 3D Spatial Canvas
-│       ├── src/
-│       │   ├── app/            # App router (page.tsx, layout.tsx, globals.css)
-│       │   ├── components/
-│       │   │   ├── 3d/         # Three.js (DNAHelix.tsx, SpatialCanvas.tsx)
-│       │   │   ├── modules/    # 60+ Workspaces (ResumeMatcher, CATQuiz, etc.)
-│       │   │   ├── proctoring/ # ProctoringHUD.tsx ambient integrity monitor
-│       │   │   └── ui/         # Glassmorphic controls, Sidebar, TopHeader
-│       │   └── lib/store.ts    # Zustand spatial state management
-│       └── package.json        # Frontend dependencies
-├── scripts/                    # Database migrations & question bank seeds
-├── tests/                      # Pytest automated test suites
+│   ├── dna-web/                # Next.js application and Node dependencies
+├── .env, .env.example          # Shared root-level environment configuration
+├── skillmatch.db               # Existing local SQLite database
+├── run_local.py                # Root-level local service launcher
 ├── documentation.md            # Master Project Foundation & Feature Manual
-├── prd.md                      # Master Product Requirements Document (v26.0)
-├── requirements.txt            # Python dependencies
-├── run_local.py                # Local FastAPI server launcher
-├── run_streamlit.bat           # Local Streamlit launcher
-└── streamlit_app.py            # Streamlit Cyber-Neon Portal
+└── prd.md                      # Master Product Requirements Document
 ```
-
----
-
 ## 6. Comprehensive Feature Guide ("Feature All")
 
 ### Feature 1: Production Input DNA Matrix Engine (`dna_matrix_engine.py` / `/dna`)
@@ -427,9 +375,8 @@ Ultra-low-power, sub-millisecond edge computation for real-time candidate evalua
 * **Hiring Manager Matrix**: Side-by-side comparative radar charts comparing candidate proficiencies against internal team benchmarks.
 * **Executive Co-Pilot (`/executive-copilot`)**: Strategic organizational dashboard modeling enterprise workforce capability, projected skill shortages, and internal talent mobility.
 
-### Feature 15: Dual-Frontend Visual Design Systems
+### Feature 15: Frontend Visual Design System
 * **Next.js 15 3D Spatial Canvas**: Bioluminescent Obsidian Prism aesthetic featuring React Three Fiber DNA Double Helix (`DNAHelix.tsx`), interactive AudioSphere (`AudioSphere.tsx`), and 60+ modular workspaces.
-* **Streamlit Cyber-Neon Portal**: High-speed, responsive Python web interface with live pipeline status indicators, PII anonymization toggles, quick-load demo benchmarks, and interactive skill gap cards.
 
 ---
 
@@ -580,7 +527,7 @@ curl -X POST "http://localhost:8000/readiness/generate-roadmap/1"
 
 ## 8. Database Schema & SQLAlchemy ORM Models
 
-The database models are declared in `app/models/models.py`.
+The database models are declared in `backend/app/models/models.py`.
 
 ```
 ====================================================================================================
@@ -663,7 +610,7 @@ For enterprise-scale production deployment, follow the guidelines established in
 
 1. **Database Migration**: Switch `DATABASE_URL` from SQLite to production PostgreSQL:
    ```bash
-   alembic upgrade head
+   alembic -c backend/alembic.ini upgrade head
    ```
 2. **PostgreSQL Vector Extension**: Enable `pgvector` for scalable nearest-neighbor index lookups:
    ```sql

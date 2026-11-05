@@ -1,5 +1,6 @@
 @echo off
 title SkillMatch Localhost Runner
+cd /d "%~dp0"
 echo ========================================================
 echo Starting SkillMatch AI Platform on Localhost...
 echo ========================================================

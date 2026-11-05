@@ -22,8 +22,10 @@ if sys.platform == "win32":
 
 def get_paths():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    if os.path.exists(os.path.join(script_dir, "app")):
+    if os.path.exists(os.path.join(script_dir, "backend", "app")):
         base_dir = script_dir
+    elif os.path.exists(os.path.join(script_dir, "..", "app")):
+        base_dir = os.path.dirname(os.path.dirname(script_dir))
     else:
         base_dir = os.path.dirname(script_dir)
     
@@ -85,6 +87,7 @@ def main():
     print("\n[1/2] Starting FastAPI Backend on http://127.0.0.1:8000 ...")
     backend_cmd = [
         py_exec, "-m", "uvicorn",
+        "--app-dir", os.path.join(base_dir, "backend"),
         "app.main:app",
         "--host", "0.0.0.0",
         "--port", "8000",
@@ -124,7 +127,6 @@ def main():
     print("  FastAPI AI Backend:        http://localhost:8000")
     print("  Interactive Swagger Docs:  http://localhost:8000/docs")
     print("  Health Telemetry:          http://localhost:8000/health")
-    print("  Streamlit Portal (opt):    run_streamlit.bat (http://localhost:8501)")
     print("=" * 68)
     print("Press Ctrl+C to stop all services.\n")
 

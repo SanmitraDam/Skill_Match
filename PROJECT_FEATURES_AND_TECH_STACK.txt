@@ -252,8 +252,6 @@ FRONTEND A: NEXT.JS 15 SPATIAL 3D WEB CANVAS (`frontend/dna-web`)
 * Axios (v1.6.8):
   HTTP client communicating with the FastAPI backend.
 
-FRONTEND B: STREAMLIT CYBER-NEON PORTAL (`streamlit_app.py`)
-* Streamlit (v1.64.0):
   An ultra-fast, zero-configuration Python web framework that runs instantly with one command.
 * Custom Cyber-Neon Dark CSS:
   Injected CSS styling that mirrors the exact dark glassmorphism, glowing cyan/violet accents, 
@@ -275,7 +273,7 @@ FRONTEND B: STREAMLIT CYBER-NEON PORTAL (`streamlit_app.py`)
   Production enterprise relational database with native vector similarity search for embeddings.
 * Pluggable Storage Abstraction (`storage_service.py`):
   Switches seamlessly between:
-  1. `LocalStorageProvider`: Saves uploaded resumes and generated MP3 audio to local disk (`app/static/`).
+  1. `LocalStorageProvider`: Saves uploaded resumes and generated MP3 audio to local disk (`backend/app/static/`).
   2. `S3StorageProvider`: Streams files to Amazon AWS S3 for enterprise scale.
   3. `CloudinaryStorageProvider`: Uploads media assets to Cloudinary media cloud.
 * Pluggable Vector Store Abstraction (`vector_store.py`):
@@ -325,7 +323,6 @@ FRONTEND B: STREAMLIT CYBER-NEON PORTAL (`streamlit_app.py`)
   Automated test suite verifying vector math, parsing SLAs, proctoring algorithms, and API contracts.
 * Local Supervisor Scripts:
   - `run_local.py`: Python master supervisor that boots both FastAPI and Next.js in parallel.
-  - `run_streamlit.bat`: 1-click Windows batch file launching the Streamlit portal.
   - `start_local.bat`: 1-click Windows launcher for the full stack.
 * Cloudflare Worker Grid & Fly.io (`edge/`):
   Edge proxy templates for global low-latency deployment.
@@ -633,7 +630,6 @@ FEATURE 20: DUAL-FRONTEND VISUAL DESIGN SYSTEMS (3D SPATIAL + CYBER-NEON)
      "Cyber Obsidian Emerald" (deep obsidian void dark mode).
   3. Universal Skip-TOC Navigation: Embedded shortcut bar with keyboard hotkeys (`Alt+1` Overview, 
      `Alt+2` Flashcards, `Alt+3` CV Builder, `Alt+4` Feed).
-  4. Streamlit Cyber-Neon Portal: Fast, lightweight Python alternative with full dark-cyber styling.
 
 
 ====================================================================================================
@@ -692,7 +688,7 @@ STEP 6: SOCIAL SHARING & RECRUITER DISCOVERY
 7. DATABASE SCHEMA & DATA MODELS (EXPLAINED IN EASY TERMS)
 ====================================================================================================
 
-The database is managed with SQLAlchemy ORM (`app/models/models.py`) and supports SQLite and PostgreSQL.
+The database is managed with SQLAlchemy ORM (`backend/app/models/models.py`) and supports SQLite and PostgreSQL.
 Here is what each primary table stores:
 
 1. `users`:
@@ -804,7 +800,7 @@ source .venv/bin/activate
 
 # 2. Upgrade pip and install all backend dependencies
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 # 3. Download the spaCy English NLP language model
 python -m spacy download en_core_web_sm
@@ -848,19 +844,9 @@ python run_local.py
 * Interactive Swagger: http://localhost:8000/docs
 * Health Telemetry:    http://localhost:8000/health
 
-OPTION 2: THE INSTANT STREAMLIT CYBER-NEON PORTAL (Zero-Node, 100% Python)
-```bash
-# On Windows:
-.\run_streamlit.bat
-
-# Or run directly:
-streamlit run streamlit_app.py
-```
-* Access the Cyber-Neon Portal at: http://localhost:8501
-
 OPTION 3: RUN BACKEND DIRECTLY VIA UVICORN
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn --app-dir backend app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 
@@ -870,7 +856,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 1. $0.00 / MONTH OPERATIONAL COST:
    Runs entirely on open-source libraries (Faster-Whisper, Edge-TTS, Sentence-Transformers, SQLite, 
-   PyMuPDF, Streamlit, Next.js) and free cloud tiers (Groq, Gemini). No paid API keys required.
+   PyMuPDF, Next.js) and free cloud tiers (Groq, Gemini). No paid API keys required.
 
 2. MULTI-MODAL EVALUATION (NOT JUST TEXT):
    While other platforms only scan resume text, SkillMatch evaluates text, dense semantic vectors, 
@@ -886,7 +872,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 5. AWARD-WINNING USER EXPERIENCE:
    From the cinematic 3D DNA Double Helix to the AudioSphere voice visualizer and the Cyber-Neon 
-   Streamlit portal, SkillMatch delivers a premier user experience that sets a new standard for AI applications.
+   SkillMatch delivers a premier user experience that sets a new standard for AI applications.
 
 ====================================================================================================
                               END OF MASTER PROJECT GUIDE (.TXT)

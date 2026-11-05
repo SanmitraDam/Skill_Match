@@ -85,7 +85,7 @@ trap cleanup INT TERM EXIT
 
 # 5. Start FastAPI Backend
 echo -e "\n${BOLD}${GREEN}[1/2] Starting FastAPI Backend on http://127.0.0.1:8000...${RESET}"
-(cd "$ROOT_DIR" && "$PYTHON_BIN" -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload) &
+(cd "$ROOT_DIR" && "$PYTHON_BIN" -m uvicorn --app-dir "$ROOT_DIR/backend" app.main:app --host 0.0.0.0 --port 8000 --reload) &
 BACKEND_PID=$!
 
 # 6. Start Next.js Frontend

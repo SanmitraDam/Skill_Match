@@ -7,7 +7,7 @@
 | **Document Version** | `26.0.0-PRODUCTION-DNA-MATRIX-NEUROMORPHIC-SINGULARITY` |
 | **Document Status** | `APPROVED & ACTIVE MASTER SPECIFICATION` |
 | **Grounding Baseline** | `suggestion-v1.md` through `suggestion-v25.md`, `prd_spec.txt`, `PRODUCTION.md` |
-| **Target Architecture** | Python 3.11+, FastAPI (91+ API modules, 194 endpoints), Next.js 15 App Router, React 19, Three.js / React Three Fiber, Zustand, Streamlit 1.30+ Cyber Portal |
+| **Target Architecture** | Python 3.11+, FastAPI (91+ API modules, 194 endpoints), Next.js 15 App Router, React 19, Three.js / React Three Fiber, Zustand |
 | **AI & NLP Stack** | Groq Cloud (Llama-3-70B), Google Gemini Flash, Ollama (Llama 3.2:3b), Faster-Whisper (int8/CPU), Microsoft Edge-TTS, Sentence-Transformers (`all-MiniLM-L6-v2`), SpaCy (`en_core_web_sm`), PyMuPDF, Lightcast Open Skills Taxonomy (34,000+ skills), Microsoft Presidio PII Masking |
 | **Advanced Cognitive Stack** | Poincare Hyperbolic Embeddings, Quantum Approximate Optimization (QAOA), Spiking Neuromorphic Computing (LIF), Sub-Picosecond Photonic Vector Mesh, Deep Reinforcement Learning (PPO & MARL Swarms), Closed-Loop RLAHF & RLVR, Plonky3 zk-STARK Rollups, ML-DSA-65 / Dilithium-3 Post-Quantum Cryptography |
 | **Data & Storage** | SQLite / PostgreSQL (SQLAlchemy ORM + Alembic + pgvector), Local Storage / AWS S3 / Cloudinary Provider Abstraction, Pinecone / Local Vector Store |
@@ -86,7 +86,7 @@ flowchart TD
 sequenceDiagram
     autonumber
     actor Candidate as Job Seeker
-    participant UI as Dual Frontend (Next.js / Streamlit)
+    participant UI as Frontend (Next.js)
     participant API as FastAPI Unified Gateway
     participant DNA as Input DNA Matrix Engine
     participant CAT as Adaptive CAT Engine
@@ -330,8 +330,8 @@ graph TD
 | **FR-26** | **Quantum QAOA Team Optimization** | Ising spin formulation for optimal multi-agent engineering squad assembly. | P2 | Implemented (`/qaoa`, `/tq-qaoa`) |
 | **FR-27** | **Deep RL (PPO) & Closed-Loop RLAHF** | Adaptive policy optimization for candidate difficulty scheduling, learning path adjustment, and human feedback calibration. | P2 | Implemented (`/rl-adaptive`, `/rlahf-closed-loop`) |
 | **FR-28** | **Executive Co-Pilot & Workforce Graph** | Strategic executive dashboard for engineering leaders to forecast talent shortages and simulate organizational restructuring. | P1 | Implemented (`/executive-copilot`) |
-| **FR-29** | **Pluggable Storage Abstraction** | Storage service interface switching seamlessly between `LocalStorageProvider`, `S3StorageProvider`, and `CloudinaryStorageProvider`. | P0 | Implemented (`app/services/storage_service.py`) |
-| **FR-30** | **Pluggable Vector Store Abstraction** | Vector store abstraction supporting in-memory cosine store (`LocalVectorStore`) and cloud Pinecone (`PineconeVectorStore`). | P0 | Implemented (`app/services/vector_store.py`) |
+| **FR-29** | **Pluggable Storage Abstraction** | Storage service interface switching seamlessly between `LocalStorageProvider`, `S3StorageProvider`, and `CloudinaryStorageProvider`. | P0 | Implemented (`backend/app/services/storage_service.py`) |
+| **FR-30** | **Pluggable Vector Store Abstraction** | Vector store abstraction supporting in-memory cosine store (`LocalVectorStore`) and cloud Pinecone (`PineconeVectorStore`). | P0 | Implemented (`backend/app/services/vector_store.py`) |
 
 ---
 
@@ -359,13 +359,6 @@ The enterprise web client utilizes a **Bioluminescent Obsidian Prism** design sy
 3. **Interactive Roadmap Constellation (`RoadmapGraph`)**: Glowing milestone nodes connected by energetic vector rungs in 3D space.
 4. **Spatial Canvas (`SpatialCanvas.tsx`)**: 3D particle embedding visualization of high-dimensional skill spaces.
 5. **Modular Workspaces (`Workspace.tsx`)**: 60+ decoupled tab modules covering candidate, recruiter, executive, and DAO features.
-
-### 6.2 Streamlit Cyber-Neon Portal (`streamlit_app.py`)
-A fast-start, zero-configuration Python interface matching the exact dark cyber-neon styling:
-* **Input DNA Matrix with Bias-Free PII Masking**: Real-time toggling of Presidio PII masking.
-* **Live Pipeline State Indicators**: Visual badges tracking Resume Indexing, JD Analysis, and Match Score status.
-* **Quick-Load Demo Profiles**: Instant 1-click loading of Python Developer, React Frontend, and Data Analyst test benchmarks.
-* **Tabbed Exploration**: Dual views covering **DNA Matcher** and **Skill Gap Intelligence**.
 
 ---
 
@@ -462,7 +455,7 @@ erDiagram
     DigitalTwinProfile ||--o{ DigitalTwinSimulationRun : simulates
 ```
 
-### Complete ORM Entity Inventory (from `app/models/models.py`)
+### Complete ORM Entity Inventory (from `backend/app/models/models.py`)
 1. **User**: Credentials, role (`candidate`, `recruiter`, `hiring_manager`, `compliance_officer`), tenant identifier.
 2. **Resume**: File metadata, extracted raw text, parsed skill array, tenant isolation.
 3. **JobDescription**: Requirement text, parsed required skill array, tenant isolation.
