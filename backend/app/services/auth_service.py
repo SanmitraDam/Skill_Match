@@ -2,11 +2,12 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from app.core.config import settings
 
-# Configuration - In production, these should be in .env
-SECRET_KEY = "SKILLMATCH_ULTRA_SECRET_KEY_CHANGE_ME"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 24 hours
+# Configuration loaded from environment / settings
+SECRET_KEY = settings.SECRET_KEY or "SKILLMATCH_ULTRA_SECRET_KEY_CHANGE_ME"
+ALGORITHM = settings.ALGORITHM or "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES or (60 * 24)
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
 

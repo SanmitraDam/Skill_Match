@@ -17,13 +17,20 @@ class StorageProvider(ABC):
     def get_url(self, filename: str, folder: str = "") -> str:
         pass
 
-DEFAULT_UPLOAD_DIR = Path(__file__).resolve().parents[1] / "static" / "uploads"
+if os.environ.get("VERCEL"):
+    DEFAULT_UPLOAD_DIR = Path("/tmp") / "skillmatch_uploads"
+else:
+    DEFAULT_UPLOAD_DIR = Path(__file__).resolve().parents[1] / "static" / "uploads"
 
 
 class LocalStorageProvider(StorageProvider):
     def __init__(self, base_dir: str = str(DEFAULT_UPLOAD_DIR)):
         self.base_dir = base_dir
-        os.makedirs(self.base_dir, exist_ok=True)
+        try:
+            os.makedirs(self.base_dir, exist_ok=True)
+        except OSError:
+            self.base_dir = str(Path("/tmp") / "skillmatch_uploads")
+            os.makedirs(self.base_dir, exist_ok=True)
 
     async def upload(self, file: BinaryIO, filename: str, folder: str = "") -> str:
         target_dir = os.path.join(self.base_dir, folder)
