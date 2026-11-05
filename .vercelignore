@@ -1,0 +1,29 @@
+# Large archives, data dumps and shards
+*.db
+*.sqlite*
+*.gz
+*.part*
+*.p[0-9]*
+backend/data/*.db
+backend/data/**/*.gz*
+backend/data/**/*.part*
+backend/data/**/*.p[0-9]*
+backend/data/virtual_shards/**
+
+# Virtual environments & local dependencies
+.venv/**
+venv/**
+ENV/**
+env/**
+
+# Tests & caches
+tests/**
+backend/tests/**
+.pytest_cache/**
+__pycache__/**
+*.pyc
+
+# Local audio dumps & logs
+backend/app/static/audio/recordings/**
+backend/app/static/uploads/**
+logs/**
