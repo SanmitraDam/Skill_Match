@@ -64,10 +64,16 @@ app = FastAPI(
     version="26.0.0-MASTER-UNIFIED-PLATFORM"
 )
 
-# Enable CORS for localhost and frontend applications
+# Enable CORS for localhost and deployed frontend applications (Vercel)
+raw_origins = getattr(settings, "ALLOWED_ORIGINS", "*")
+if raw_origins and raw_origins != "*":
+    cors_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+else:
+    cors_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -3,8 +3,17 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-ENV_FILE = REPOSITORY_ROOT / ".env"
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3] if len(Path(__file__).resolve().parents) > 3 else BACKEND_DIR
+
+# Prioritize backend/.env if present, otherwise root .env
+if (BACKEND_DIR / ".env").exists():
+    ENV_FILE = BACKEND_DIR / ".env"
+elif (REPOSITORY_ROOT / ".env").exists():
+    ENV_FILE = REPOSITORY_ROOT / ".env"
+else:
+    ENV_FILE = BACKEND_DIR / ".env"
+
 load_dotenv(ENV_FILE)
 
 class Settings(BaseSettings):
@@ -15,6 +24,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-key")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15))
+
+    # CORS
+    ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "*")
 
     # AI APIs
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
