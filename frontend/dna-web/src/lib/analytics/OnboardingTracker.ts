@@ -5,7 +5,7 @@
  * and manager ratings to correlate assessment readiness scores with real-world job performance.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+import { API_BASE as BASE } from '../api-config';
 
 export interface OnboardingTelemetry {
   employee_id: string;

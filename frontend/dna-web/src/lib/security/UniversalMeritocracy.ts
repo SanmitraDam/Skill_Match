@@ -5,7 +5,7 @@
  * cross-chain candidate verification and automated regulatory red-teaming.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+import { API_BASE as BASE } from '../api-config';
 
 export interface RecursiveZKStarkProof {
   proof_id: string;

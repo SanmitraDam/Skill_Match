@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
 from app.models.database import engine, Base, ensure_schema_compatibility
 from app.models import models
 

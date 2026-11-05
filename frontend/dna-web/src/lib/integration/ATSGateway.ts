@@ -4,7 +4,7 @@
  * Handles Greenhouse, Lever, Workday, BambooHR, SAP SuccessFactors integration
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+import { API_BASE as BASE } from '../api-config';
 
 export interface ATSIntegrationConfig {
   integration_id: string;

@@ -50,10 +50,12 @@ export interface ZKVerificationReceipt {
   verifiedAt: number;
 }
 
+import { getBackendBaseUrl } from '../api-config';
+
 export class ZKProctorClient {
   private apiBaseUrl: string;
 
-  constructor(apiBaseUrl: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') {
+  constructor(apiBaseUrl: string = getBackendBaseUrl()) {
     this.apiBaseUrl = apiBaseUrl;
   }
 

@@ -4,7 +4,7 @@
  * Connects 30/60/90-day telemetry to CAT item difficulty (b_i) and vector weight updates
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+import { API_BASE as BASE } from '../api-config';
 
 export interface PerformanceTelemetryEvent {
   employee_id: string;

@@ -18,10 +18,12 @@ export interface DeviceAttestationResult {
   indicators: string[];
 }
 
+import { getBackendBaseUrl } from '../api-config';
+
 export class DeviceAttestationEngine {
   private apiBaseUrl: string;
 
-  constructor(apiBaseUrl: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') {
+  constructor(apiBaseUrl: string = getBackendBaseUrl()) {
     this.apiBaseUrl = apiBaseUrl;
   }
 

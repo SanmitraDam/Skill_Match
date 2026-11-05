@@ -1,14 +1,8 @@
 import axios from 'axios';
-
-const rawBase =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (process.env.NEXT_PUBLIC_API_URL
-    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '')}/api/v1`
-    : 'http://localhost:8000/api/v1');
-const API_BASE_URL = rawBase.replace(/\/+$/, '');
+import { getAuthApiBaseUrl } from '../api-config';
 
 export const authApi = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getAuthApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

@@ -5,7 +5,7 @@
  * sub-nanosecond Photonic QKE similarity scores, and transduces bio-neural intent.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+import { API_BASE as BASE } from '../api-config';
 
 export interface QuantumStateProjection {
   projection_id: string;

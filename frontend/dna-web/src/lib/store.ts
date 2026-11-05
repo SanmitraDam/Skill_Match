@@ -8,8 +8,7 @@ import type {
   ReadinessFeedPost,
   ReadinessPostCreate,
 } from '@/types/api';
-
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000').replace(/\/+$/, '');
+import { API_BASE } from './api-config';
 const SOCIAL_API = `${API_BASE}/api/v1/readiness`;
 
 /**

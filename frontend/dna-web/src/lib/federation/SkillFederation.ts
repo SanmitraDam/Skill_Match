@@ -5,7 +5,7 @@
  * zkDID candidate consent revocation, and anti-collusion PoW audits.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+import { API_BASE as BASE } from '../api-config';
 
 export interface ConsortiumNode {
   node_id: string;

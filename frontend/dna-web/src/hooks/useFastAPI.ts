@@ -23,8 +23,7 @@ import {
   ProfileAnalytics,
   ProfileVerification
 } from '@/types/api';
-
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000').replace(/\/+$/, '');
+import { API_BASE } from '@/lib/api-config';
 
 export function useBackendHealth() {
   return useQuery({
