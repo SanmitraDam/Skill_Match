@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 import os
+import io
 from app.models.database import get_db
 from app.models import models
 from app.services.parser import parser
@@ -32,26 +33,19 @@ async def parse_resume(
     except Exception:
         pass
     safe_filename = os.path.basename(file.filename or "resume.pdf")
-    file_path_in_db = await storage_service.save_file(file.file, safe_filename, "resumes")
-    local_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "static",
-        "uploads",
-        file_path_in_db,
-    )
 
-    if not os.path.exists(local_path):
-        os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        try:
-            await file.seek(0)
-            content = await file.read()
-            with open(local_path, "wb") as f:
-                f.write(content)
-        except Exception:
-            pass
+    # Read uploaded content in-memory (serverless and read-only safe)
+    content = await file.read()
+
+    # Save to persistent storage (CockroachDB / Cloud)
+    file_path_in_db = await storage_service.save_file(io.BytesIO(content), safe_filename, "resumes")
 
     try:
-        raw_text = parser.extract_text(local_path)
+        # Extract text in-memory from bytes (no disk required)
+        raw_text = parser.extract_text(file_bytes=content, filename=safe_filename)
+        if not raw_text.strip():
+            raw_text = content.decode("utf-8", errors="ignore")
+
         social_profiles = parser.extract_social_profiles(raw_text)
 
         processed_text = raw_text

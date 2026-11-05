@@ -26,6 +26,72 @@
       }
     },
     {
+      "source": "/skills/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/quiz/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/interview/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/readiness/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/flashcards/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/sandbox/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/behavioral/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/forensic/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/auth/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/telemetry/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/storage/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
       "source": "/docs",
       "destination": {
         "service": "backend"
@@ -57,4 +123,3 @@
     }
   ]
 }
-

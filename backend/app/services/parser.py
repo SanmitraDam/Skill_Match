@@ -1,4 +1,5 @@
 import os
+import io
 import re
 import zipfile
 import xml.etree.ElementTree as ET
@@ -32,8 +33,38 @@ class ResumeParser:
         }
         self.skill_keywords = self.hard_skills | self.soft_skills | self.domain_tools
 
-    def extract_text(self, file_path: str) -> str:
-        """Extracts raw text from PDF, DOCX, or TXT/MD files."""
+    def extract_text(self, file_path: Optional[str] = None, file_bytes: Optional[bytes] = None, filename: str = "") -> str:
+        """Extracts raw text from PDF, DOCX, or TXT/MD files via path or direct bytes."""
+        # 1. Direct in-memory parsing from bytes (ideal for serverless / zero-disk execution)
+        if file_bytes is not None:
+            ext = os.path.splitext(filename)[1].lower() if filename else ".pdf"
+            if ext == ".pdf":
+                try:
+                    text = ""
+                    with fitz.open(stream=file_bytes, filetype="pdf") as doc:
+                        for page in doc:
+                            text += page.get_text()
+                    return text
+                except Exception as e:
+                    print(f"Error parsing in-memory PDF: {e}")
+                    return ""
+            elif ext == ".docx":
+                try:
+                    with zipfile.ZipFile(io.BytesIO(file_bytes), "r") as docx_zip:
+                        xml_content = docx_zip.read("word/document.xml")
+                        tree = ET.fromstring(xml_content)
+                        paragraphs = [elem.text for elem in tree.iter() if elem.tag.endswith("t") and elem.text]
+                        return " ".join(paragraphs)
+                except Exception as e:
+                    print(f"Error parsing in-memory docx: {e}")
+                    return ""
+            else:
+                return file_bytes.decode("utf-8", errors="ignore")
+
+        # 2. File path fallback
+        if not file_path or not os.path.exists(file_path):
+            return ""
+
         ext = os.path.splitext(file_path)[1].lower()
 
         if ext == ".pdf":
@@ -45,22 +76,16 @@ class ResumeParser:
 
         elif ext == ".docx":
             try:
-                # Direct XML extraction from docx container without extra external dependency
                 with zipfile.ZipFile(file_path, "r") as docx_zip:
                     xml_content = docx_zip.read("word/document.xml")
                     tree = ET.fromstring(xml_content)
-                    paragraphs = []
-                    for elem in tree.iter():
-                        if elem.tag.endswith("t"): # text element
-                            if elem.text:
-                                paragraphs.append(elem.text)
+                    paragraphs = [elem.text for elem in tree.iter() if elem.tag.endswith("t") and elem.text]
                     return " ".join(paragraphs)
             except Exception as e:
                 print(f"Error parsing docx: {e}")
                 return ""
 
         else:
-            # Fallback plain text / markdown
             try:
                 with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                     return f.read()
