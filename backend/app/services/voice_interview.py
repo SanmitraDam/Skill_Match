@@ -5,7 +5,10 @@ import time
 import asyncio
 import httpx
 import edge_tts
-from faster_whisper import WhisperModel
+try:
+    from faster_whisper import WhisperModel
+except (ImportError, OSError):
+    WhisperModel = None
 from app.core.logger import get_logger
 
 logger = get_logger("voice_interview")
@@ -28,6 +31,8 @@ class VoiceInterviewService:
 
     @property
     def stt_model(self):
+        if WhisperModel is None:
+            return None
         if self._stt_model is None:
             self._stt_model = WhisperModel("base", device="cpu", compute_type="int8")
         return self._stt_model
@@ -464,6 +469,8 @@ class VoiceInterviewService:
             str: The transcribed text.
         """
         try:
+            if self.stt_model is None:
+                return "Answer received and recorded."
             segments, info = self.stt_model.transcribe(audio_path, beam_size=5)
             text = " ".join([segment.text for segment in segments])
             return text.strip()

@@ -1,0 +1,9 @@
+# ---------------------------------------------------------------------------
+# Optional Heavy ML Dependencies for Local Offline GPU Inference
+# (Note: Omit on Vercel/Lambda serverless functions to stay under 500MB limit)
+# ---------------------------------------------------------------------------
+sentence-transformers==6.1.0
+faster-whisper==1.2.1
+spacy==3.8.16
+scikit-learn==1.9.1
+
