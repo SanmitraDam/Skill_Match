@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, JSON, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, JSON, DateTime, Boolean, LargeBinary
 from sqlalchemy.orm import relationship
 import datetime
 from app.models.database import Base
@@ -405,5 +405,18 @@ class CandidateProfile(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
     user = relationship("User", foreign_keys=[user_id])
+
+
+class StoredFile(Base):
+    """Database-backed persistent blob storage for serverless environments (CockroachDB / PostgreSQL)."""
+    __tablename__ = "stored_files"
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String(500), unique=True, index=True, nullable=False)
+    folder = Column(String(255), default="", index=True)
+    content = Column(LargeBinary, nullable=False)
+    mime_type = Column(String(100), default="application/octet-stream")
+    file_size = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
 
 

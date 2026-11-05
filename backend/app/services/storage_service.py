@@ -1,8 +1,9 @@
 import os
 import shutil
+import mimetypes
 from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import BinaryIO
+from typing import BinaryIO, Optional, Tuple
 
 class StorageProvider(ABC):
     @abstractmethod
@@ -162,6 +163,94 @@ class CloudinaryStorageProvider(StorageProvider):
         return f"/static/uploads/{clean_path}".replace("//", "/")
 
 
+class DatabaseStorageProvider(StorageProvider):
+    """
+    Database-backed persistent blob storage using CockroachDB / PostgreSQL.
+    Stores files permanently as binary LargeBinary (BYTEA) blobs, surviving
+    serverless restarts without requiring local disk or third-party buckets.
+    """
+    def __init__(self, base_dir: str = str(DEFAULT_UPLOAD_DIR)):
+        self.base_dir = base_dir
+        try:
+            os.makedirs(self.base_dir, exist_ok=True)
+        except OSError:
+            self.base_dir = str(Path("/tmp") / "skillmatch_uploads")
+            os.makedirs(self.base_dir, exist_ok=True)
+
+    async def upload(self, file: BinaryIO, filename: str, folder: str = "") -> str:
+        # Cache to local disk/tmp for in-process parser execution
+        target_dir = os.path.join(self.base_dir, folder)
+        os.makedirs(target_dir, exist_ok=True)
+        target_path = os.path.join(target_dir, filename)
+
+        try:
+            file.seek(0)
+        except Exception:
+            pass
+
+        content = file.read()
+        with open(target_path, "wb") as f:
+            f.write(content)
+
+        # Persist permanently to CockroachDB / PostgreSQL
+        norm_name = f"{folder}/{filename}".strip("/") if folder else filename
+        mime_type, _ = mimetypes.guess_type(filename)
+        mime_type = mime_type or "application/octet-stream"
+
+        try:
+            from app.models.database import SessionLocal
+            from app.models.models import StoredFile
+            db = SessionLocal()
+            try:
+                existing = db.query(StoredFile).filter(StoredFile.filename == norm_name).first()
+                if existing:
+                    existing.content = content
+                    existing.file_size = len(content)
+                    existing.mime_type = mime_type
+                else:
+                    new_file = StoredFile(
+                        filename=norm_name,
+                        folder=folder,
+                        content=content,
+                        mime_type=mime_type,
+                        file_size=len(content)
+                    )
+                    db.add(new_file)
+                db.commit()
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"[Storage] Database persistence warning: {e}")
+
+        return os.path.join(folder, filename).replace("\\", "/")
+
+    async def delete(self, filename: str, folder: str = "") -> bool:
+        norm_name = f"{folder}/{filename}".strip("/") if folder else filename
+        try:
+            local_path = os.path.join(self.base_dir, folder, filename)
+            if os.path.exists(local_path):
+                os.remove(local_path)
+        except Exception:
+            pass
+
+        try:
+            from app.models.database import SessionLocal
+            from app.models.models import StoredFile
+            db = SessionLocal()
+            try:
+                db.query(StoredFile).filter(StoredFile.filename == norm_name).delete()
+                db.commit()
+                return True
+            finally:
+                db.close()
+        except Exception:
+            return False
+
+    def get_url(self, filename: str, folder: str = "") -> str:
+        norm_name = f"{folder}/{filename}".strip("/") if folder else filename
+        return f"/api/v1/storage/{norm_name}"
+
+
 class StorageService:
     def __init__(self, provider: StorageProvider):
         self.provider = provider
@@ -175,15 +264,25 @@ class StorageService:
     def get_file_url(self, filename: str, folder: str = "") -> str:
         return self.provider.get_url(filename, folder)
 
+
 # Dependency Injection Setup
-_provider_type = os.getenv("STORAGE_TYPE", "local").lower()
-if _provider_type == "cloudinary":
+_provider_type = os.getenv("STORAGE_TYPE", "database").lower()
+_db_url = os.getenv("DATABASE_URL", "").lower()
+
+if _provider_type in ["database", "cockroach", "postgres", "sql", "db"]:
+    storage_provider = DatabaseStorageProvider()
+elif _provider_type == "cloudinary":
     try:
         storage_provider = CloudinaryStorageProvider()
     except Exception:
-        storage_provider = LocalStorageProvider()
+        storage_provider = DatabaseStorageProvider()
 elif _provider_type == "s3":
     storage_provider = S3StorageProvider(os.getenv("S3_BUCKET_NAME", "skillmatch-dna-uploads"))
 else:
-    storage_provider = LocalStorageProvider()
+    # If CockroachDB/PostgreSQL or Vercel serverless environment is active, use DatabaseStorageProvider
+    if "cockroach" in _db_url or "postgres" in _db_url or os.environ.get("VERCEL"):
+        storage_provider = DatabaseStorageProvider()
+    else:
+        storage_provider = LocalStorageProvider()
+
 storage_service = StorageService(storage_provider)

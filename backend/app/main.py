@@ -35,6 +35,7 @@ from app.api import (
     talent_exchange,
     talent_mobility,
     cv,
+    storage,
 )
 
 models.Base.metadata.create_all(bind=engine)
@@ -145,6 +146,7 @@ app.include_router(browser_guard.router, prefix="/api/v1")
 app.include_router(proctoring_pts.router, prefix="/api/v1")
 app.include_router(zk_proctor.router, prefix="/api/v1")
 app.include_router(cv.router, prefix="/api/v1")
+app.include_router(storage.router, prefix="/api/v1")
 
 # Gateway alias endpoints
 app.add_api_route("/api/v1/resume/upload", skills.parse_resume, methods=["POST"], tags=["Gateway Aliases"])
