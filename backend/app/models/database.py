@@ -7,6 +7,17 @@ from app.core.config import settings
 db_url = settings.DATABASE_URL
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+# CockroachDB Cloud version string compatibility
+if "cockroach" in db_url.lower():
+    try:
+        from sqlalchemy.dialects.postgresql.base import PGDialect
+        PGDialect._get_server_version_info = lambda *args: (15, 0)
+    except Exception:
+        pass
+
+if "sslmode=verify-full" in db_url and "sslrootcert=" not in db_url:
+    db_url = db_url.replace("sslmode=verify-full", "sslmode=require")
 elif "sqlite" in db_url and os.environ.get("VERCEL") and not db_url.startswith("sqlite:////tmp"):
     db_url = "sqlite:////tmp/skillmatch.db"
 

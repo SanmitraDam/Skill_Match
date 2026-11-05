@@ -31,6 +31,13 @@ export function getBackendBaseUrl(): string {
   return 'http://localhost:8000';
 }
 
+export function getBackendUrl(path: string): string {
+  if (!path) return '';
+  const base = getBackendBaseUrl();
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${normalizedPath}`;
+}
+
 export function getAuthApiBaseUrl(): string {
   // If running on server with internal service binding
   if (typeof window === 'undefined' && process.env.BACKEND_URL) {

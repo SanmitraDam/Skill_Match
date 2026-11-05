@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { getBackendUrl } from '@/lib/api-config';
 
 /* ─────────────────────────────────────────────────────────────
    EnterpriseWorkforceGraph.tsx — SkillMatch DNA v19.0
@@ -35,7 +36,7 @@ interface CalibrationResult {
 }
 interface ModelWeights { skill_weights: Record<string, number>; global_ccrs_prediction_accuracy_pct: number; total_telemetry_samples: number; }
 
-const BASE = 'http://localhost:8000';
+const BASE = getBackendUrl('/api/v1');
 
 // ── Helper ─────────────────────────────────────────────────────
 const fmt = (n: number) => new Intl.NumberFormat('en-IN').format(n);

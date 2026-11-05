@@ -11,6 +11,7 @@ import {
   Menu, Search, Shield, Bell, ChevronRight, Building2, Command as CommandIcon, LogOut, User as UserIcon, Sparkles,
 } from 'lucide-react';
 import { authService } from '@/lib/auth/auth-service';
+import { getBackendUrl } from '@/lib/api-config';
 
 const TENANTS = ['tenant_default', 'acme_global', 'northwind', 'helios_labs'];
 
@@ -37,7 +38,7 @@ export default function TopHeader({ onAuthClick }: { onAuthClick: (mode?: 'signi
   useEffect(() => {
     const check = async () => {
       try {
-        const r = await fetch('http://localhost:8000/health');
+        const r = await fetch(getBackendUrl('/health'));
         setBackendOnline(r.ok);
       } catch {
         setBackendOnline(false);

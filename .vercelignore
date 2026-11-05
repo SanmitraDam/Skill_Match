@@ -27,3 +27,4 @@ __pycache__/**
 backend/app/static/audio/recordings/**
 backend/app/static/uploads/**
 logs/**
+

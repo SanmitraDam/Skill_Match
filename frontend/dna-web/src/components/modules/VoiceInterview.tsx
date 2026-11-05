@@ -24,6 +24,7 @@ import {
 import { cn } from '@/lib/utils';
 import AudioPlayerTile from '@/components/social/AudioPlayerTile';
 import { useSpatialStore } from '@/lib/store';
+import { getBackendUrl } from '@/lib/api-config';
 
 export function VoiceInterview() {
   const [interviewId, setInterviewId] = useState<string | null>(null);
@@ -561,8 +562,8 @@ export function VoiceInterview() {
   if (isFinished) {
     const streamUrl = completeInterviewData
       ? (comparisonAudioMode === 'filtered'
-          ? `http://localhost:8000${completeInterviewData.filtered_audio_url}`
-          : `http://localhost:8000${completeInterviewData.raw_audio_url}`)
+          ? getBackendUrl(completeInterviewData.filtered_audio_url)
+          : getBackendUrl(completeInterviewData.raw_audio_url))
       : '';
 
     return (
@@ -696,14 +697,14 @@ export function VoiceInterview() {
               {/* Download Buttons */}
               <div className="flex items-center gap-2">
                 <a
-                  href={`http://localhost:8000${completeInterviewData?.filtered_audio_url || ''}`}
+                  href={getBackendUrl(completeInterviewData?.filtered_audio_url || '')}
                   download="interview_filtered_anc.wav"
                   className="px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-600 dark:text-emerald-300 text-xs font-mono flex items-center gap-1.5 transition-all"
                 >
                   <Download size={12} /> Download Filtered (.wav)
                 </a>
                 <a
-                  href={`http://localhost:8000${completeInterviewData?.raw_audio_url || ''}`}
+                  href={getBackendUrl(completeInterviewData?.raw_audio_url || '')}
                   download="interview_raw_ambient.wav"
                   className="px-3 py-1.5 rounded-lg bg-[var(--glass-bg)] hover:bg-[var(--glass-border-subtle)] border border-[var(--glass-border-subtle)] text-[var(--fg-muted)] text-xs font-mono flex items-center gap-1.5 transition-all"
                 >
@@ -747,7 +748,7 @@ export function VoiceInterview() {
             src={
               comparisonAudioMode === 'filtered'
                 ? streamUrl
-                : `http://localhost:8000${completeInterviewData?.filtered_audio_url ?? ''}`
+                : getBackendUrl(completeInterviewData?.filtered_audio_url ?? '')
             }
             durationSeconds={15}
             label="Shareable 15s STAR Snippet — Identity Hub proof"

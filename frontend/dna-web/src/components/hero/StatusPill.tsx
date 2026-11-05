@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { getBackendUrl } from '@/lib/api-config';
 
 export default function StatusPill() {
   const [status, setStatus] = useState<{ online: boolean; engine: string }>({
@@ -13,7 +14,7 @@ export default function StatusPill() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        await axios.get('http://localhost:8000/health');
+        await axios.get(getBackendUrl('/health'));
         setStatus({
           online: true,
           engine: '384D Vector Cosine Engine Online'
