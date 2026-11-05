@@ -1,0 +1,22 @@
+{
+  "name": "skillmatch_question_bank",
+  "virtual_space": {
+    "total_questions": 33600000000,
+    "dimensions": {
+      "concept_anchors": 280,
+      "question_styles": 15,
+      "market_scenarios": 40,
+      "experience_levels": 5,
+      "framings": 10,
+      "emphases": 10,
+      "probes": 10,
+      "company_contexts": 40
+    },
+    "render": "deterministic from integer index [0, total)"
+  },
+  "curated_db": {
+    "shards": [
+      "question_bank.db.gz.part000"
+    ]
+  }
+}

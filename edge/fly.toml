@@ -1,0 +1,59 @@
+# SkillMatch DNA v8.0 — Planetary Edge Mesh Deployment Configuration (Fly.io)
+# Global Edge Network with Sub-10ms localized inference
+
+app = "skillmatch-planetary-edge"
+primary_region = "iad"
+
+[experimental]
+  auto_rollback = true
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8000"
+  EDGE_ROUTING_MODE = "PLANETARY_MESH"
+  SUB_10MS_ENFORCEMENT = "true"
+  DEFAULT_STABLECOIN = "USDC"
+
+# Primary Edge Regions
+# iad: North America East (US East)
+# sjc: North America West (US West)
+# fra: Europe Central (Frankfurt)
+# lhr: Europe West (London)
+# bom: Asia Pacific South (Mumbai)
+# nrt: Asia Pacific East (Tokyo)
+# gru: South America (São Paulo)
+# jnb: Africa South (Johannesburg)
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8000
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "requests"
+    soft_limit = 250
+    hard_limit = 500
+
+  [[services.http_checks]]
+    interval = "5s"
+    timeout = "2s"
+    grace_period = "5s"
+    restart_limit = 0
+    method = "get"
+    path = "/health"
+    protocol = "http"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2048mb"
+  cpus = 2

@@ -1,0 +1,285 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Custom Scrollbars ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.4); }
+
+@import '../styles/theme.css';
+
+:root {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --sidebar-width: 240px;
+  --header-height: 56px;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--fg-color);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* ==========================================================================
+   ELITE MORPHISM DESIGN SYSTEM (Fable 5 Level)
+   ========================================================================== */
+
+/* 1. Skeuomorphism: Physicality, Bevels, and Tactility */
+.skeuo-card {
+  background: var(--bg-color);
+  border-radius: 1.5rem;
+  box-shadow:
+    inset 2px 2px 5px rgba(255, 255, 255, 0.5),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.2),
+    8px 8px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.skeuo-button {
+  background: var(--bg-color);
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 1px 1px 2px rgba(255, 255, 255, 0.8),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+    3px 3px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.1s ease;
+}
+
+.skeuo-button:active {
+  box-shadow:
+    inset 2px 2px 5px rgba(0, 0, 0, 0.2),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.5);
+  transform: translateY(1px);
+}
+
+/* 2. Papermorphism: Layered, Tactile, Matte Sheets */
+.paper-card {
+  background: #fffefc;
+  border-radius: 0.5rem;
+  box-shadow:
+    2px 2px 0px #ddd,
+    4px 4px 0px #ccc,
+    8px 8px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .paper-card {
+  background: #1a1f2e;
+  box-shadow:
+    2px 2px 0px #0a0c14,
+    4px 4px 0px #05070a,
+    8px 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 3. Metalmorphism: Brushed Chrome, Reflective, Industrial */
+.metal-card {
+  background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 50%, #cbd5e1 100%);
+  border-radius: 1rem;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.8),
+    0 10px 20px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.5);
+  color: #1e293b;
+}
+
+[data-theme='dark'] .metal-card {
+  background: linear-gradient(135deg, #334155 0%, #0f172a 50%, #334155 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #f8fafc;
+}
+
+/* 4. Color Morphism: Fluid, Gradient-Shifting Surfaces */
+.color-morph {
+  background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary), var(--accent-primary));
+  background-size: 200% 200%;
+  animation: morph-gradient 8s ease infinite;
+  transition: all 0.5s ease;
+}
+
+@keyframes morph-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Global Utility Classes */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 30px var(--glow-color);
+  transform: translateY(-2px);
+}
+
+.neural-text-glow {
+  text-shadow: 0 0 15px var(--accent-primary), 0 0 30px var(--accent-secondary);
+  background: linear-gradient(to bottom, var(--fg-color), var(--accent-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.laser-scan-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.laser-scan-effect::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--accent-secondary),
+    transparent 100%
+  );
+  animation: scan 3s linear infinite;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+@keyframes scan {
+  0% { top: -100%; }
+  100% { top: 100%; }
+}
+
+/* ===== Body Ambient Gradient ===== */
+body {
+  background-image:
+    radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 95%, rgba(52, 211, 153, 0.03) 0%, transparent 40%);
+}
+
+/* ===== Workspace panel fade-in ===== */
+#workspace-section {
+  animation: fadeSlideIn 0.35s ease-out;
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Cyber glow helpers ===== */
+.cyber-glow   { box-shadow: 0 0 20px rgba(139,92,246,0.3), 0 0 60px rgba(139,92,246,0.08); }
+.emerald-glow { box-shadow: 0 0 20px rgba(52,211,153,0.25), 0 0 60px rgba(52,211,153,0.06); }
+.cyan-glow    { box-shadow: 0 0 20px rgba(6,182,212,0.25),  0 0 60px rgba(6,182,212,0.06); }
+
+/* ===== Gradient border utility ===== */
+.gradient-border { position: relative; }
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4, #34d399);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* ==========================================================================
+   ENTERPRISE UI LAYER — added utilities
+   ========================================================================== */
+
+/* Text glow used by Hero + GlassCard titles (was referenced but undefined) */
+.cyber-text-glow {
+  text-shadow: 0 0 12px var(--accent-primary), 0 0 28px rgba(139, 92, 246, 0.35);
+}
+
+/* Ambient enterprise grid backdrop for dashboards / landings */
+.enterprise-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+
+/* KPI / metric tile with hairline border + hover lift */
+.kpi-tile {
+  position: relative;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.kpi-tile:hover {
+  transform: translateY(-3px);
+  border-color: rgba(139, 92, 246, 0.45);
+  box-shadow: 0 16px 40px -24px rgba(139, 92, 246, 0.75);
+}
+
+/* Skeleton shimmer for loading states */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.04) 75%);
+  background-size: 500px 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Hide scrollbars while keeping scroll behaviour (mobile drawers, chip rails) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Consistent keyboard focus ring for accessibility (WCAG 2.4.7) */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+  color: #fff;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Slim scrollbar for the primary navigation rail */
+.nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+

@@ -1,0 +1,14 @@
+{
+  "name": "skillmatch-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend/dna-web run dev",
+    "build": "npm --prefix frontend/dna-web run build",
+    "start": "npm --prefix frontend/dna-web start",
+    "install:all": "npm --prefix frontend/dna-web install"
+  },
+  "dependencies": {
+    "cloudinary": "^2.11.0"
+  }
+}
