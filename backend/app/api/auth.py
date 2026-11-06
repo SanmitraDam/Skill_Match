@@ -128,6 +128,16 @@ async def verify_code(req: VerifyCodeRequest):
             "message": "Identity verification successfully confirmed."
         }
 
+    # Verify against Neon Auth OTP service
+    neon_valid = await email_service.verify_neon_otp(email_clean, code_entered)
+    if neon_valid:
+        return {
+            "verified": True,
+            "email": email_clean,
+            "status": "AUTHENTICATED",
+            "message": "Identity verification successfully confirmed via Neon Auth."
+        }
+
     # Sandbox fallback when SMTP is not configured
     if not email_service.is_smtp_configured() and code_entered == "123456":
         return {

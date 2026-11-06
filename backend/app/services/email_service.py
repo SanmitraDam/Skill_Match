@@ -132,8 +132,56 @@ class EmailService:
             print(f"[EMAIL SERVICE ERROR] {err_str}")
             return False, err_str
 
+    async def send_neon_otp(self, recipient_email: str, purpose: str = "signup") -> Tuple[bool, str]:
+        """Dispatch OTP email using Neon Auth Managed Better Auth service."""
+        base_url = os.getenv("NEON_AUTH_BASE_URL", "")
+        if not base_url:
+            return False, "NEON_AUTH_BASE_URL not configured"
+        try:
+            import httpx
+            otp_type = "email-verification" if purpose == "signup" else "sign-in"
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                res = await client.post(
+                    f"{base_url}/email-otp/send-verification-otp",
+                    json={"email": recipient_email, "type": otp_type},
+                    headers={"Content-Type": "application/json", "Origin": "http://localhost:3000"}
+                )
+                if res.status_code == 200:
+                    print(f"[NEON AUTH] Dispatched verification OTP email to {recipient_email}")
+                    return True, "Dispatched via Neon Auth"
+                return False, f"Neon Auth error: {res.status_code}"
+        except Exception as e:
+            return False, str(e)
+
+    async def verify_neon_otp(self, recipient_email: str, otp: str) -> bool:
+        """Validate 6-digit OTP code against Neon Auth service."""
+        base_url = os.getenv("NEON_AUTH_BASE_URL", "")
+        if not base_url:
+            return False
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                res = await client.post(
+                    f"{base_url}/email-otp/verify-email",
+                    json={"email": recipient_email, "otp": otp},
+                    headers={"Content-Type": "application/json", "Origin": "http://localhost:3000"}
+                )
+                return res.status_code == 200
+        except Exception as e:
+            print(f"[NEON AUTH VERIFY WARNING] {e}")
+            return False
+
     async def send_otp(self, recipient_email: str, code: str, purpose: str = "signup") -> Tuple[bool, str]:
-        """Async wrapper for non-blocking email delivery."""
-        return await asyncio.to_thread(self.send_otp_sync, recipient_email, code, purpose)
+        """Async wrapper for non-blocking email delivery via SMTP or Neon Auth."""
+        if self.is_smtp_configured():
+            return await asyncio.to_thread(self.send_otp_sync, recipient_email, code, purpose)
+
+        # Attempt dispatch via Neon Auth if configured
+        neon_sent, neon_msg = await self.send_neon_otp(recipient_email, purpose)
+        if neon_sent:
+            return True, neon_msg
+
+        return False, "SMTP and Neon Auth not reachable"
 
 email_service = EmailService()
+
