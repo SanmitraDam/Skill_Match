@@ -64,20 +64,53 @@ class LocalStorageProvider(StorageProvider):
         return f"/static/uploads/{clean_path}".replace("//", "/")
 
 class S3StorageProvider(StorageProvider):
-    # Placeholder for actual boto3 implementation
-    def __init__(self, bucket_name: str):
-        self.bucket = bucket_name
+    """S3-compatible Object Storage Provider supporting Neon Object Storage and AWS S3."""
+    def __init__(self, bucket_name: str = "assets"):
+        self.bucket = bucket_name or "assets"
+        self.endpoint_url = os.getenv("AWS_ENDPOINT_URL_S3")
+        self.access_key = os.getenv("AWS_ACCESS_KEY_ID")
+        self.secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        self.region = os.getenv("AWS_REGION", "ap-southeast-1")
+        self.client = None
+        if self.access_key and self.secret_key:
+            try:
+                import boto3
+                self.client = boto3.client(
+                    "s3",
+                    endpoint_url=self.endpoint_url,
+                    aws_access_key_id=self.access_key,
+                    aws_secret_access_key=self.secret_key,
+                    region_name=self.region
+                )
+            except Exception as e:
+                print(f"[Storage] S3/Neon client initialization warning: {e}")
 
     async def upload(self, file: BinaryIO, filename: str, folder: str = "") -> str:
-        # In real implementation: s3.upload_fileobj(file, self.bucket, f"{folder}/{filename}")
-        return f"s3://{self.bucket}/{folder}/{filename}"
+        key = f"{folder}/{filename}".strip("/") if folder else filename
+        if self.client:
+            try:
+                file.seek(0)
+                self.client.upload_fileobj(file, self.bucket, key)
+                return key
+            except Exception as e:
+                print(f"[Storage] S3/Neon upload warning: {e}")
+        return key
 
     async def delete(self, filename: str, folder: str = "") -> bool:
-        # In real implementation: s3.delete_object(Bucket=self.bucket, Key=f"{folder}/{filename}")
+        key = f"{folder}/{filename}".strip("/") if folder else filename
+        if self.client:
+            try:
+                self.client.delete_object(Bucket=self.bucket, Key=key)
+                return True
+            except Exception:
+                return False
         return True
 
     def get_url(self, filename: str, folder: str = "") -> str:
-        return f"https://{self.bucket}.s3.amazonaws.com/{folder}/{filename}"
+        key = f"{folder}/{filename}".strip("/") if folder else filename
+        if self.endpoint_url:
+            return f"{self.endpoint_url}/{self.bucket}/{key}"
+        return f"https://{self.bucket}.s3.amazonaws.com/{key}"
 
 class CloudinaryStorageProvider(StorageProvider):
     """Cloudinary raw-file storage with local cache. Requires CLOUDINARY_URL or
@@ -276,8 +309,8 @@ elif _provider_type == "cloudinary":
         storage_provider = CloudinaryStorageProvider()
     except Exception:
         storage_provider = DatabaseStorageProvider()
-elif _provider_type == "s3":
-    storage_provider = S3StorageProvider(os.getenv("S3_BUCKET_NAME", "skillmatch-dna-uploads"))
+elif _provider_type in ["s3", "neon", "object-storage", "r2"]:
+    storage_provider = S3StorageProvider(os.getenv("S3_BUCKET_NAME", "assets"))
 else:
     # If CockroachDB/PostgreSQL or Vercel serverless environment is active, use DatabaseStorageProvider
     if "cockroach" in _db_url or "postgres" in _db_url or os.environ.get("VERCEL"):
