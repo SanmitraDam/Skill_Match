@@ -70,26 +70,32 @@ export function ResumeMatcher() {
         <GlassCard title="Input Skill Matrix">
           <div className="space-y-6">
             {/* PII Anonymization Toggle */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border-subtle)]">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={18} className={anonymizePii ? "text-cyan-500" : "text-[var(--fg-muted)]"} />
-                <div>
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border-subtle)]">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <ShieldCheck size={18} className={cn("shrink-0", anonymizePii ? "text-cyan-500" : "text-[var(--fg-muted)]")} />
+                <div className="min-w-0">
                   <div className="text-xs font-bold text-[var(--fg-color)]">Bias-Free PII Masking</div>
                   <div className="text-[10px] text-[var(--fg-muted)]">Scrub phone, email, and address before vectorization</div>
                 </div>
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={anonymizePii}
                 onClick={() => setAnonymizePii(!anonymizePii)}
                 className={cn(
-                  "w-11 h-6 rounded-full transition-colors relative cursor-pointer",
-                  anonymizePii ? "bg-cyan-500" : "bg-slate-300 dark:bg-white/20"
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2",
+                  anonymizePii ? "bg-cyan-500 shadow-sm shadow-cyan-500/30" : "bg-slate-300 dark:bg-white/20"
                 )}
               >
-                <div className={cn(
-                  "w-4 h-4 rounded-full bg-white transition-transform absolute top-1",
-                  anonymizePii ? "right-1" : "left-1"
-                )} />
+                <span className="sr-only">Toggle Bias-Free PII Masking</span>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                    anonymizePii ? "translate-x-5" : "translate-x-0"
+                  )}
+                />
               </button>
             </div>
 
