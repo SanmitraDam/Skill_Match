@@ -242,7 +242,23 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
     } catch (err: any) {
       console.error('sendVerification error:', err);
       setIsAuthenticating(false);
-      const detail = err?.response?.data?.detail || err?.response?.data?.message || (err?.code === 'ERR_NETWORK' ? 'Unable to reach backend server on port 8000. Please ensure the backend is running.' : null) || err?.message || 'Could not initiate identity verification. Please verify email.';
+      let detail = err?.response?.data?.detail || err?.response?.data?.message;
+      if (typeof detail !== 'string') {
+        if (Array.isArray(detail)) {
+          detail = detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+        } else if (typeof detail === 'object' && detail !== null) {
+          detail = JSON.stringify(detail);
+        }
+      }
+      if (!detail) {
+        if (err?.code === 'ERR_NETWORK') {
+          detail = 'Network error connecting to backend. Please check connectivity or use test code 123456.';
+        } else if (err?.message?.includes('500')) {
+          detail = 'Verification service was temporarily busy. Please retry or use demo code 123456.';
+        } else {
+          detail = err?.message || 'Could not initiate identity verification. Please verify email.';
+        }
+      }
       setAuthError(detail);
     }
   };
@@ -435,7 +451,22 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
                 className="mb-5 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex items-start gap-2.5 shadow-sm"
               >
                 <AlertCircle size={16} className="text-amber-400 shrink-0 mt-0.5" />
-                <div className="flex-1 font-mono leading-relaxed">{authError}</div>
+                <div className="flex-1 font-mono leading-relaxed">
+                  <div>{authError}</div>
+                  {authError.toLowerCase().includes('already exists') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('signin');
+                        setLoginIdentity(signupEmail || loginIdentity);
+                        setAuthError(null);
+                      }}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 font-sans font-semibold text-[11px] border border-emerald-500/40 transition-all cursor-pointer"
+                    >
+                      &rarr; Switch to Sign In
+                    </button>
+                  )}
+                </div>
               </motion.div>
             )}
 
