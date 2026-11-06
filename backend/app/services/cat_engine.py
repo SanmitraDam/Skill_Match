@@ -6,8 +6,23 @@ from typing import List, Optional, Tuple, Dict, Any
 from app.core.config import settings
 from app.schemas.quiz import MCQQuestion, QuizFinalResult
 from app.core.logger import get_logger
+from app.services.cat_questions_bank import get_unasked_question, TECHNICAL_QUESTIONS_BANK
 
 logger = get_logger("cat_engine")
+
+def randomize_options(options: List[str], correct_index: int) -> Tuple[List[str], int]:
+    """
+    Randomly shuffles options and returns (shuffled_options, new_correct_option_index).
+    Guarantees that the correct answer is uniformly distributed across indices 0, 1, 2, and 3.
+    """
+    if not options or len(options) < 2 or correct_index < 0 or correct_index >= len(options):
+        return options, 0
+
+    pairs = [(opt, i == correct_index) for i, opt in enumerate(options)]
+    random.shuffle(pairs)
+    shuffled_options = [p[0] for p in pairs]
+    new_correct_index = [p[1] for p in pairs].index(True)
+    return shuffled_options, new_correct_index
 
 class CATEngine:
     """
@@ -87,20 +102,20 @@ class CATEngine:
         _, new_diff = self.update_ability_irt_2pl(current_theta, current_difficulty, is_correct)
         return new_diff
 
-    async def generate_question(self, skill: str, difficulty: int, theta: float = 0.0) -> MCQQuestion:
+    async def generate_question(
+        self,
+        skill: str,
+        difficulty: int,
+        theta: float = 0.0,
+        asked_ids: Optional[set] = None
+    ) -> MCQQuestion:
         """
-        Synthesizes a targeted MCQ or coding challenge via LLM (Groq/Ollama) or deterministic fallback.
-
-        Args:
-            skill (str): The technical skill to target.
-            difficulty (int): Target difficulty level (1-5).
-            theta (float): Current latent ability of the candidate. Defaults to 0.0.
-
-        Returns:
-            MCQQuestion: A structured question object containing text, options, and metadata.
+        Synthesizes a targeted MCQ or coding challenge via LLM (Groq/Ollama) or deterministic item bank.
+        Guarantees diverse questions without repetition and randomized option indices.
         """
         b = self.difficulty_to_b(difficulty)
         a = round(random.uniform(1.1, 1.4), 2)
+        seen_set = asked_ids if asked_ids is not None else set()
 
         is_coding_skill = skill.lower() in {
             "python", "javascript", "typescript", "go", "sql", "postgresql", "fastapi", "react", "pytorch"
@@ -129,7 +144,7 @@ class CATEngine:
                 f"'difficulty' ({difficulty}), 'skill_targeted' ('{skill}')."
             )
 
-        # 1. Try Groq (Preferred)
+        # 1. Try Groq (Preferred if API Key present)
         if settings.GROQ_API_KEY:
             try:
                 async with httpx.AsyncClient() as client:
@@ -146,10 +161,14 @@ class CATEngine:
                     response.raise_for_status()
                     content = response.json()["choices"][0]["message"]["content"]
                     data = json.loads(content)
-                    return MCQQuestion(
+                    raw_options = data["options"]
+                    raw_correct = int(data["correct_option_index"])
+                    shuffled_options, new_correct_idx = randomize_options(raw_options, raw_correct)
+
+                    q_obj = MCQQuestion(
                         question=data["question"],
-                        options=data["options"],
-                        correct_option_index=int(data["correct_option_index"]),
+                        options=shuffled_options,
+                        correct_option_index=new_correct_idx,
                         difficulty=difficulty,
                         skill_targeted=skill,
                         code_snippet=data.get("code_snippet"),
@@ -158,8 +177,10 @@ class CATEngine:
                         item_difficulty_b=b,
                         item_discrimination_a=a
                     )
+                    setattr(q_obj, "_item_id", f"groq_{hash(data['question'])}")
+                    return q_obj
             except Exception as e:
-                logger.exception(f"Groq question generation failed: {e}")
+                logger.warning(f"Groq question generation unavailable ({e}); falling back to local item bank.")
 
         # 2. Try Ollama local
         try:
@@ -176,10 +197,14 @@ class CATEngine:
                 )
                 response.raise_for_status()
                 data = json.loads(response.json()["response"])
-                return MCQQuestion(
+                raw_options = data["options"]
+                raw_correct = int(data["correct_option_index"])
+                shuffled_options, new_correct_idx = randomize_options(raw_options, raw_correct)
+
+                q_obj = MCQQuestion(
                     question=data["question"],
-                    options=data["options"],
-                    correct_option_index=int(data["correct_option_index"]),
+                    options=shuffled_options,
+                    correct_option_index=new_correct_idx,
                     difficulty=difficulty,
                     skill_targeted=skill,
                     code_snippet=data.get("code_snippet"),
@@ -188,31 +213,81 @@ class CATEngine:
                     item_difficulty_b=b,
                     item_discrimination_a=a
                 )
+                setattr(q_obj, "_item_id", f"ollama_{hash(data['question'])}")
+                return q_obj
         except Exception:
-            logger.warning("Ollama question generation failed, using deterministic fallback.")
+            pass
 
-        # 3. Deterministic Fallback Question
-        mock_snippet = None
-        if is_code_challenge:
-            mock_snippet = f"def optimize_{skill.replace(' ', '_')}():\n    cache = {{}}\n    # Complex logic\n    return cache"
+        # 3. Comprehensive High-Quality Item Bank Fallback
+        bank_q = get_unasked_question(skill, difficulty, seen_set)
+        if bank_q:
+            shuffled_options, new_correct_idx = randomize_options(
+                bank_q["options"],
+                bank_q["correct_option_index"]
+            )
+            q_obj = MCQQuestion(
+                question=bank_q["question"],
+                options=shuffled_options,
+                correct_option_index=new_correct_idx,
+                difficulty=bank_q.get("difficulty", difficulty),
+                skill_targeted=bank_q.get("skill", skill),
+                code_snippet=bank_q.get("code_snippet"),
+                question_type=bank_q.get("question_type", "mcq"),
+                theta_ability=theta,
+                item_difficulty_b=b,
+                item_discrimination_a=a
+            )
+            setattr(q_obj, "_item_id", bank_q["id"])
+            return q_obj
 
-        return MCQQuestion(
-            question=f"Which of the following describes the optimal design pattern or production consideration for {skill}?",
-            options=[
-                f"Decouple state and leverage asynchronous connection pools for {skill}.",
-                f"Store all runtime state directly in global memory variables.",
-                f"Execute blocking synchronous calls on the main thread.",
-                f"Bypass connection timeouts to avoid request failure."
-            ],
-            correct_option_index=0,
+        # 4. Dynamic Procedural Question Fallback (if item bank is somehow exhausted)
+        scenario_num = len(seen_set) + 1
+        scenarios = [
+            (
+                f"How should high-concurrency throughput bottlenecks in {skill} microservices be resolved in cluster node #{scenario_num}?",
+                [
+                    f"Profile call graphs with flamegraphs and transition I/O bottlenecks to non-blocking connection pooling in {skill}.",
+                    f"Spawn infinite thread worker processes without resource limits.",
+                    f"Hardcode 300-second request timeouts across all gateways.",
+                    f"Disable TLS certificate verification on all ingress endpoints."
+                ]
+            ),
+            (
+                f"What is the recommended architectural pattern when scaling {skill} data pipelines under 100k writes/sec?",
+                [
+                    f"Implement asynchronous batching with backpressure and circuit breakers in {skill}.",
+                    f"Write each transaction synchronously to disk with fsync=always on a single thread.",
+                    f"Store all incoming write payloads in volatile global Python variables.",
+                    f"Drop all network packet retransmissions upon latency spikes."
+                ]
+            ),
+            (
+                f"In production environments, how should memory leaks and resource exhaustion in {skill} be mitigated?",
+                [
+                    f"Audit long-lived object references, unclosed socket handles, and enforce container cgroup memory limits.",
+                    f"Allocate all available host memory to the primary heap at process initialization.",
+                    f"Disable garbage collection cycles completely to eliminate pause times.",
+                    f"Restart the physical host machine after every 1,000 transactions."
+                ]
+            )
+        ]
+        chosen_prompt, chosen_opts = random.choice(scenarios)
+        shuffled_options, new_correct_idx = randomize_options(chosen_opts, 0)
+
+        q_obj = MCQQuestion(
+            question=chosen_prompt,
+            options=shuffled_options,
+            correct_option_index=new_correct_idx,
             difficulty=difficulty,
             skill_targeted=skill,
-            code_snippet=mock_snippet,
-            question_type="code_challenge" if mock_snippet else "mcq",
+            code_snippet=None,
+            question_type="mcq",
             theta_ability=theta,
             item_difficulty_b=b,
             item_discrimination_a=a
         )
+        setattr(q_obj, "_item_id", f"procedural_{scenario_num}_{hash(chosen_prompt)}")
+        return q_obj
 
     def calculate_final_score(self, total_questions: int, correct_answers: int, peak_difficulty: int, final_theta: float = 0.0) -> float:
         """

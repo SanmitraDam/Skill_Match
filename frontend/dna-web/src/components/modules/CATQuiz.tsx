@@ -31,6 +31,7 @@ export function CATQuiz() {
   const [totalAnswered, setTotalAnswered] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [lastResult, setLastResult] = useState<{ correct: boolean; newDiff: number; theta?: number } | null>(null);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [selectedTier, setSelectedTier] = useState<number>(3);
 
   const startQuizMut = useStartQuiz();
@@ -55,6 +56,7 @@ export function CATQuiz() {
       const q = await nextQuestMut.mutateAsync(id);
       setCurrentQuestion(q);
       setLastResult(null);
+      setSelectedOption(null);
     } catch (err) {
       console.error(err);
     }
@@ -78,7 +80,8 @@ export function CATQuiz() {
   };
 
   const submitAnswer = async (optionIndex: number) => {
-    if (!sessionId || !currentQuestion) return;
+    if (!sessionId || !currentQuestion || selectedOption !== null) return;
+    setSelectedOption(optionIndex);
 
     try {
       const res = await submitAnsMut.mutateAsync({
@@ -100,6 +103,7 @@ export function CATQuiz() {
       }, 1500);
     } catch (err) {
       console.error(err);
+      setSelectedOption(null);
     }
   };
 
@@ -127,6 +131,7 @@ export function CATQuiz() {
             setDifficulty(3);
             setThetaAbility(0.0);
             setLastResult(null);
+            setSelectedOption(null);
           }}
           className="px-8 py-3 theme-primary-btn font-bold rounded-xl transition-all shadow-lg cursor-pointer"
         >
@@ -372,23 +377,46 @@ export function CATQuiz() {
                 )}
 
                 <div className="grid grid-cols-1 gap-3">
-                  {currentQuestion.options.map((opt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => submitAnswer(i)}
-                      disabled={!!lastResult}
-                      className={cn(
-                        "p-4 text-left rounded-xl border transition-all duration-200 flex items-center justify-between text-sm cursor-pointer",
-                        lastResult === null ? "bg-[var(--glass-bg)] border-[var(--glass-border-subtle)] hover:border-[var(--accent-primary)] text-[var(--fg-color)]" :
-                        i === currentQuestion.correct_option_index ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold" :
-                        lastResult?.correct === false && i === 0 ? "bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-bold" : "bg-[var(--glass-bg)] border-[var(--glass-border-subtle)] text-[var(--fg-subtle)]"
-                      )}
-                    >
-                      <span>{opt}</span>
-                      {lastResult && i === currentQuestion.correct_option_index && <CheckCircle2 size={18} className="text-emerald-500" />}
-                      {lastResult && lastResult.correct === false && i === 0 && <XCircle size={18} className="text-amber-500" />}
-                    </button>
-                  ))}
+                  {currentQuestion.options.map((opt, i) => {
+                    const isCorrectAnswer = lastResult !== null && i === currentQuestion.correct_option_index;
+                    const isSelectedWrong = lastResult !== null && !lastResult.correct && selectedOption === i;
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => submitAnswer(i)}
+                        disabled={!!lastResult}
+                        className={cn(
+                          "p-4 text-left rounded-xl border transition-all duration-200 flex items-center justify-between text-sm cursor-pointer",
+                          lastResult === null
+                            ? "bg-[var(--glass-bg)] border-[var(--glass-border-subtle)] hover:border-[var(--accent-primary)] text-[var(--fg-color)]"
+                            : isCorrectAnswer
+                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold shadow-sm shadow-emerald-500/20"
+                            : isSelectedWrong
+                            ? "bg-rose-500/15 border-rose-500 text-rose-600 dark:text-rose-400 font-bold shadow-sm shadow-rose-500/20"
+                            : "bg-[var(--glass-bg)] border-[var(--glass-border-subtle)] text-[var(--fg-subtle)] opacity-50"
+                        )}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span
+                            className={cn(
+                              "w-6 h-6 rounded-md flex items-center justify-center text-xs font-mono font-semibold transition-colors shrink-0",
+                              isCorrectAnswer
+                                ? "bg-emerald-500 text-white"
+                                : isSelectedWrong
+                                ? "bg-rose-500 text-white"
+                                : "bg-white/5 border border-white/10 text-[var(--fg-muted)]"
+                            )}
+                          >
+                            {String.fromCharCode(65 + i)}
+                          </span>
+                          <span>{opt}</span>
+                        </span>
+                        {isCorrectAnswer && <CheckCircle2 size={18} className="text-emerald-500 shrink-0 ml-2" />}
+                        {isSelectedWrong && <XCircle size={18} className="text-rose-500 shrink-0 ml-2" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </GlassCard>
             </motion.div>

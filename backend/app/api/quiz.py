@@ -14,11 +14,23 @@ active_sessions: Dict[int, Dict] = {}
 
 @router.post("/start/{match_result_id}")
 async def start_quiz(match_result_id: int, db: Session = Depends(get_db)):
-    match_result = db.query(models.SkillMatchResult).filter(models.SkillMatchResult.id == match_result_id).first()
-    if not match_result:
-        raise HTTPException(status_code=404, detail="Match result not found.")
+    match_result = None
+    try:
+        match_result = db.query(models.SkillMatchResult).filter(models.SkillMatchResult.id == match_result_id).first()
+    except Exception:
+        pass
 
-    target_skills = match_result.missing_skills or ["Python", "FastAPI", "SQL"]
+    target_skills = []
+    if match_result and match_result.missing_skills:
+        target_skills = list(match_result.missing_skills)
+
+    if not target_skills:
+        target_skills = [
+            "FastAPI", "Python", "PostgreSQL", "Docker", "Redis",
+            "Distributed Systems", "Kubernetes", "TypeScript", "React", "Kafka", "System Design"
+        ]
+
+    random.shuffle(target_skills)
     session_id = random.randint(1000, 9999)
 
     active_sessions[session_id] = {
@@ -29,6 +41,8 @@ async def start_quiz(match_result_id: int, db: Session = Depends(get_db)):
         "total_correct": 0,
         "peak_difficulty": 3,
         "target_skills": target_skills,
+        "skill_index": 0,
+        "asked_question_ids": set(),
         "current_question": None
     }
 
@@ -45,12 +59,23 @@ async def get_next_question(session_id: int):
     if not session:
         raise HTTPException(status_code=404, detail="Quiz session not found or expired.")
 
-    skill = random.choice(session["target_skills"])
+    skills = session.get("target_skills") or ["FastAPI", "Python", "PostgreSQL", "Docker", "Redis"]
+    skill_idx = session.get("skill_index", 0)
+    skill = skills[skill_idx % len(skills)]
+    session["skill_index"] = skill_idx + 1
+
+    asked_ids = session.setdefault("asked_question_ids", set())
+
     question = await cat_engine.generate_question(
         skill=skill,
         difficulty=session["current_difficulty"],
-        theta=session["theta_ability"]
+        theta=session["theta_ability"],
+        asked_ids=asked_ids
     )
+
+    item_id = getattr(question, "_item_id", None) or question.question
+    asked_ids.add(item_id)
+    asked_ids.add(question.question)
 
     session["current_question"] = question
     return question
@@ -103,15 +128,21 @@ async def finish_quiz(session_id: int, db: Session = Depends(get_db)):
         final_theta=session["theta_ability"]
     )
 
-    # Save result to DB
-    quiz_result = models.QuizResult(
-        match_result_id=session["match_result_id"],
-        score=final_score,
-        difficulty_reached=session["peak_difficulty"]
-    )
-    db.add(quiz_result)
-    db.commit()
-    db.refresh(quiz_result)
+    # Save result to DB if match_result exists
+    match_result_id = session.get("match_result_id")
+    try:
+        match_result = db.query(models.SkillMatchResult).filter(models.SkillMatchResult.id == match_result_id).first()
+        if match_result:
+            quiz_result = models.QuizResult(
+                match_result_id=match_result_id,
+                score=final_score,
+                difficulty_reached=session["peak_difficulty"]
+            )
+            db.add(quiz_result)
+            db.commit()
+            db.refresh(quiz_result)
+    except Exception:
+        db.rollback()
 
     return {
         "score": final_score,
