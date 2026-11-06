@@ -115,8 +115,14 @@ def ensure_post_interview_audio_assets(interview_id: str) -> tuple[str, str]:
     - Raw Input: Voice plus simulated ambient noise (fan hum, typing clicks, white noise)
     Returns relative URLs for both streams.
     """
-    recordings_dir = os.path.join(APP_STATIC_DIR, "audio", "recordings")
-    os.makedirs(recordings_dir, exist_ok=True)
+    if os.environ.get("VERCEL"):
+        recordings_dir = "/tmp/audio/recordings"
+    else:
+        recordings_dir = os.path.join(APP_STATIC_DIR, "audio", "recordings")
+    try:
+        os.makedirs(recordings_dir, exist_ok=True)
+    except Exception:
+        pass
 
     filtered_filename = f"{interview_id}_filtered.wav"
     raw_filename = f"{interview_id}_raw.wav"

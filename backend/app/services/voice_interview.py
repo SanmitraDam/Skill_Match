@@ -446,8 +446,14 @@ class VoiceInterviewService:
 
     async def text_to_speech(self, text: str, filename: str) -> str:
         """Converts text to speech and saves as mp3 using edge-tts."""
-        audio_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "audio")
-        os.makedirs(audio_dir, exist_ok=True)
+        if os.environ.get("VERCEL"):
+            audio_dir = "/tmp/audio"
+        else:
+            audio_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "audio")
+        try:
+            os.makedirs(audio_dir, exist_ok=True)
+        except Exception:
+            pass
         output_path = os.path.join(audio_dir, filename)
         try:
             communicate = edge_tts.Communicate(text, self.tts_voice)

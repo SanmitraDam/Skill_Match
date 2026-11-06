@@ -58,7 +58,13 @@ with SessionLocal() as db_session:
         db_session.add_all([sample_1, sample_2])
         db_session.commit()
 
-os.makedirs(STATIC_DIR / "audio" / "recordings", exist_ok=True)
+try:
+    if not os.environ.get("VERCEL"):
+        os.makedirs(STATIC_DIR / "audio" / "recordings", exist_ok=True)
+    else:
+        os.makedirs(Path("/tmp/audio/recordings"), exist_ok=True)
+except Exception:
+    pass
 
 app = FastAPI(
     title="SkillMatch DNA — Unified Master Architecture Platform",
