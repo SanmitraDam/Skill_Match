@@ -609,7 +609,7 @@ def test_v27_route_methods_match_the_frontend_contract():
 # Test 10: Blueprint exports compliance for the v27 frontend surfaces
 # ============================================================================
 def test_v27_frontend_blueprint_exports():
-    root = os.path.dirname(os.path.abspath(__file__))
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     missing = []
     for relative, needle in BLUEPRINT_SURFACES.items():
         path = os.path.join(root, relative.replace("/", os.sep))
@@ -623,7 +623,7 @@ def test_v27_frontend_blueprint_exports():
 
 
 def test_v27_navigation_registers_the_social_sections():
-    root = os.path.dirname(os.path.abspath(__file__))
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     nav_path = os.path.join(root, "frontend", "dna-web", "src", "lib", "navigation.ts")
     with open(nav_path, encoding="utf-8") as handle:
         nav = handle.read()

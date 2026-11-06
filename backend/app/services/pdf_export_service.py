@@ -101,14 +101,13 @@ def _build_reportlab_pdf(structured_cv: Dict[str, Any], cv_markdown: str) -> byt
     story = []
     header = structured_cv.get('header', {}) if structured_cv else {}
 
-    # 1. Header (Name, Title, Location, Contact)
+    # 1. Header (Name, Title, Location, Contact, Verified Social Proof)
     name = header.get('name') or 'Candidate Name'
     role = header.get('role') or 'Senior Software Engineer'
     location = header.get('location') or 'Open to Remote'
     email = header.get('email') or ''
     phone = header.get('phone') or ''
     links_list = header.get('links', [])
-    links = ' • '.join([str(l) for l in links_list if l])
 
     story.append(Paragraph(name, name_style))
     story.append(Spacer(1, 2))
@@ -116,9 +115,28 @@ def _build_reportlab_pdf(structured_cv: Dict[str, Any], cv_markdown: str) -> byt
     story.append(Paragraph(role_loc, title_style))
     story.append(Spacer(1, 2))
 
-    contact_items = [p for p in [email, phone, links] if p]
+    contact_items = [p for p in [location, email, phone] if p]
     if contact_items:
-        story.append(Paragraph(' • '.join(contact_items), contact_style))
+        story.append(Paragraph(' &nbsp;|&nbsp; '.join(contact_items), contact_style))
+
+    # Formatted clickable links
+    formatted_links = []
+    for raw_link in links_list:
+        if not raw_link: continue
+        l_str = str(raw_link).strip()
+        display_label = l_str.replace("https://", "").replace("http://", "").rstrip("/")
+        if "github.com" in l_str:
+            display_label = f"GitHub: {display_label}"
+        elif "linkedin.com" in l_str:
+            display_label = f"LinkedIn: {display_label}"
+        elif "skillmatch.id" in l_str or "verify" in l_str:
+            display_label = f"SkillMatch Proof: {display_label}"
+        formatted_links.append(f'<a href="{l_str}"><font color="#0284c7"><u>{display_label}</u></font></a>')
+
+    if formatted_links:
+        story.append(Spacer(1, 1))
+        story.append(Paragraph(' &nbsp;|&nbsp; '.join(formatted_links), contact_style))
+
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width='100%', thickness=1.5, color=colors.HexColor('#059669'), spaceAfter=6))
 
@@ -176,6 +194,22 @@ def _build_reportlab_pdf(structured_cv: Dict[str, Any], cv_markdown: str) -> byt
             if details:
                 story.append(Paragraph(details, bullet_style))
             story.append(Spacer(1, 2))
+
+    # 6. Verified System Attestations & Benchmarks
+    certifications = structured_cv.get('certifications', []) if structured_cv else []
+    if certifications:
+        story.append(Spacer(1, 2))
+        story.append(Paragraph('VERIFIED SYSTEM ATTESTATIONS & CREDENTIALS', section_head_style))
+        story.append(HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#cbd5e1'), spaceAfter=4))
+        for cert in certifications:
+            c_name = cert.get('name', 'SkillMatch Verified Attestation')
+            c_score = cert.get('score', '')
+            c_issuer = cert.get('issuer', 'SkillMatch DNA Engine')
+            c_url = cert.get('credential_url', '')
+            cert_line = f"• <b>{c_name}</b> <font color='#059669'>({c_score})</font> — {c_issuer}"
+            if c_url:
+                cert_line += f' &nbsp;|&nbsp; <a href="{c_url}"><font color="#0284c7"><u>Proof Verification</u></font></a>'
+            story.append(Paragraph(cert_line, bullet_style))
 
     doc.build(story)
     return buf.getvalue()

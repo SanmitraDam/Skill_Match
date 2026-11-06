@@ -284,3 +284,52 @@ body {
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
+/* ── Print Isolation: Pure ATS Resume Document Rendering ── */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Hide all dashboard chrome: sidebars, navbars, buttons, modals, badges, tabs */
+  header, nav, aside, footer, button, .theme-card, .fixed, .pointer-events-none, input, textarea, select {
+    display: none !important;
+  }
+
+  /* Isolate and expand printable CV document */
+  #cv-printable-document {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  #cv-printable-document * {
+    visibility: visible !important;
+    color: inherit !important;
+  }
+
+  .cv-entry-block {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  a {
+    text-decoration: underline !important;
+    color: #0284c7 !important;
+  }
+}
+
+

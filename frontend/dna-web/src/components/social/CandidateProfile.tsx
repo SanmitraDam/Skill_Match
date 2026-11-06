@@ -432,9 +432,9 @@ export const CandidateProfile: React.FC<CandidateProfileProps> = ({
                       className={cn(
                         'text-[9px] font-mono px-1.5 py-0.2 rounded font-bold',
                         skill.level === 'Expert' ? 'bg-emerald-500/15 text-emerald-400' :
-                        skill.level === 'Advanced' ? 'bg-cyan-500/15 text-cyan-400' :
-                        skill.level === 'Intermediate' ? 'bg-amber-500/15 text-amber-400' :
-                        'bg-slate-500/15 text-slate-400'
+                          skill.level === 'Advanced' ? 'bg-cyan-500/15 text-cyan-400' :
+                            skill.level === 'Intermediate' ? 'bg-amber-500/15 text-amber-400' :
+                              'bg-slate-500/15 text-slate-400'
                       )}
                     >
                       {skill.level}

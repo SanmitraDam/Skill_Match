@@ -933,6 +933,12 @@ export interface TailoredCVResponse {
       phone: string;
       location: string;
       links: string[];
+      social_links?: {
+        github?: string;
+        linkedin?: string;
+        portfolio?: string;
+        proof_url?: string;
+      };
     };
     summary: string;
     skills: {
@@ -950,6 +956,12 @@ export interface TailoredCVResponse {
       institution: string;
       year: string;
       details?: string;
+    }>;
+    certifications?: Array<{
+      name: string;
+      issuer: string;
+      score?: string;
+      credential_url?: string;
     }>;
   };
 }
