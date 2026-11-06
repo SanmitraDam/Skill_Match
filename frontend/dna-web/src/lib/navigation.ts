@@ -11,10 +11,8 @@ import {
   LayoutDashboard,
   Rocket,
   Sparkles,
-  Users,
   Bell,
   Fingerprint,
-  BarChart3,
 } from 'lucide-react';
 import type { Tab } from './store';
 
@@ -36,7 +34,7 @@ export interface NavGroup {
 
 /**
  * Master Navigation Architecture strictly mapped to suggestion.md (v27.0 Unified Blueprint).
- * Surfaces the 6 defined architectural pillars + Social Feed & Reminders.
+ * Surfaces the defined architectural pillars.
  */
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -52,24 +50,10 @@ export const NAV_GROUPS: NavGroup[] = [
         description: 'Unified overview across assessment modules, scores, and active roadmaps.',
       },
       {
-        id: 'feed',
-        label: 'Social Readiness Hub',
-        icon: Users,
-        badge: 'NEW',
-        description: 'Verified candidate milestones, skill assessments, and hiring views.',
-      },
-      {
         id: 'candidate_profile',
         label: 'Candidate Identity Hub',
         icon: Fingerprint,
         description: 'Readiness score breakdown, verified skills, and interview recordings.',
-      },
-      {
-        id: 'profile_analytics',
-        label: 'Reach Analytics',
-        icon: BarChart3,
-        badge: 'RAI',
-        description: 'Profile views, recruiter engagement, and role alignment metrics.',
       },
     ],
   },

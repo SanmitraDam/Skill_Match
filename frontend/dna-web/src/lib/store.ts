@@ -31,9 +31,7 @@ async function socialRequest<T>(path: string, init?: RequestInit): Promise<T | n
 export type Tab =
   | 'overview'
   | 'hero'
-  | 'feed'
   | 'candidate_profile'
-  | 'profile_analytics'
   | 'matcher'
   | 'cv_builder'
   | 'gap_intelligence'

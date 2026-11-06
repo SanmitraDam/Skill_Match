@@ -316,12 +316,6 @@ export const ReadinessFeed: React.FC = () => {
               <Fingerprint size={14} /> Identity Hub
             </button>
             <button
-              onClick={() => navigateTo('profile_analytics')}
-              className="px-3 py-2.5 rounded-xl text-xs font-semibold border border-[var(--glass-border-subtle)] text-[var(--fg-muted)] hover:text-[var(--fg-color)] flex items-center gap-1.5 cursor-pointer"
-            >
-              <BarChart3 size={14} /> Reach Accuracy
-            </button>
-            <button
               onClick={() => navigateTo('matcher')}
               className="theme-primary-btn px-4 py-2.5 text-xs font-semibold flex items-center gap-1.5"
             >

@@ -68,7 +68,7 @@ BLUEPRINT_SURFACES = {
     "frontend/dna-web/src/lib/flashcards/PDFFlashcardGenerator.ts": "parseSectionsFromText",
     "frontend/dna-web/src/lib/memory/MemoryEngine.ts": "MemoryEngine",
     "frontend/dna-web/src/lib/nlp/SurrenderHandler.ts": "detectSurrenderIntent",
-    "frontend/dna-web/src/lib/navigation.ts": "profile_analytics",
+    "frontend/dna-web/src/lib/navigation.ts": "candidate_profile",
     "frontend/dna-web/src/lib/store.ts": "saveCandidateProfile",
     "frontend/dna-web/src/types/api.ts": "interface ProfileAnalytics",
 }
@@ -628,12 +628,12 @@ def test_v27_navigation_registers_the_social_sections():
     with open(nav_path, encoding="utf-8") as handle:
         nav = handle.read()
 
-    for tab_id in ("feed", "candidate_profile", "profile_analytics"):
+    for tab_id in ("candidate_profile",):
         assert f"id: '{tab_id}'" in nav, f"navigation.ts missing {tab_id}"
 
     workspace_path = os.path.join(root, "frontend", "dna-web", "src", "components", "modules", "Workspace.tsx")
     with open(workspace_path, encoding="utf-8") as handle:
         workspace = handle.read()
-    for tab_id in ("feed", "candidate_profile", "profile_analytics"):
+    for tab_id in ("candidate_profile",):
         assert f"activeTab === '{tab_id}'" in workspace, f"Workspace.tsx missing {tab_id} gate"
 

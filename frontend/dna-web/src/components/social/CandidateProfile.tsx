@@ -703,13 +703,6 @@ export const CandidateProfile: React.FC<CandidateProfileProps> = ({
               Tracks which recruiters inspected this identity hub, their vector alignment to the CCRS composite,
               and the search vectors that surfaced the profile.
             </p>
-
-            <button
-              onClick={() => navigateTo('profile_analytics')}
-              className="w-full theme-primary-btn py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <BarChart3 size={13} /> Open Reach Accuracy Index
-            </button>
           </div>
         </div>
       </div>

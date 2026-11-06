@@ -9,7 +9,6 @@ import {
   Command,
   Flame,
   LayoutDashboard,
-  Users,
   BookOpen,
   Bell,
   Code2,
@@ -28,14 +27,13 @@ interface QuickLink {
 
 const QUICK_LINKS: QuickLink[] = [
   { tab: 'overview', label: 'Command Center', hotkey: 'Alt + 1', icon: LayoutDashboard },
-  { tab: 'feed', label: 'Social Feed', hotkey: 'Alt + 2', icon: Users },
-  { tab: 'candidate_profile', label: 'Identity Hub', hotkey: 'Alt + 3', icon: Fingerprint },
-  { tab: 'flashcards', label: 'PDF Flashcards', hotkey: 'Alt + 4', icon: BookOpen },
-  { tab: 'reminders', label: 'Study Reminders', hotkey: 'Alt + 5', icon: Bell },
-  { tab: 'interview', label: 'Voice AI Room', hotkey: 'Alt + 6', icon: Mic },
-  { tab: 'sandbox', label: 'Code Sandbox', hotkey: 'Alt + 7', icon: Code2 },
-  { tab: 'quiz', label: 'CAT Quiz', hotkey: 'Alt + 8', icon: Activity },
-  { tab: 'cv_builder', label: 'CV & ATS Builder', hotkey: 'Alt + 9', icon: Compass },
+  { tab: 'candidate_profile', label: 'Identity Hub', hotkey: 'Alt + 2', icon: Fingerprint },
+  { tab: 'flashcards', label: 'PDF Flashcards', hotkey: 'Alt + 3', icon: BookOpen },
+  { tab: 'reminders', label: 'Study Reminders', hotkey: 'Alt + 4', icon: Bell },
+  { tab: 'interview', label: 'Voice AI Room', hotkey: 'Alt + 5', icon: Mic },
+  { tab: 'sandbox', label: 'Code Sandbox', hotkey: 'Alt + 6', icon: Code2 },
+  { tab: 'quiz', label: 'CAT Quiz', hotkey: 'Alt + 7', icon: Activity },
+  { tab: 'cv_builder', label: 'CV & ATS Builder', hotkey: 'Alt + 8', icon: Compass },
 ];
 
 export const SkipTOCNav: React.FC = () => {

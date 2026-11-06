@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { useSpatialStore } from '@/lib/store';
 import OverviewDashboard from './OverviewDashboard';
-import { ReadinessFeed } from '../social/ReadinessFeed';
 import { ResumeMatcher } from './ResumeMatcher';
 import { SkillGapIntelligence } from './SkillGapIntelligence';
 import { CATQuiz } from './CATQuiz';
@@ -17,9 +16,8 @@ import CVBuilder from './CVBuilder';
 import HeroSection from '../hero/HeroSection';
 import { SkipTOCNav } from '../navigation/SkipTOCNav';
 
-/* ── v27.0 social readiness surfaces are code-split: identity hub + reach analytics ── */
+/* ── v27.0 social readiness surfaces are code-split: identity hub ── */
 const CandidateProfile = lazy(() => import('../social/CandidateProfile'));
-const ProfileAnalytics = lazy(() => import('../social/ProfileAnalytics'));
 
 const LazyModuleFallback: React.FC<{ label: string }> = ({ label }) => (
   <div className="rounded-2xl theme-card p-8 flex items-center justify-center gap-2 text-xs font-mono text-[var(--fg-muted)]">
@@ -55,15 +53,9 @@ export default function Workspace() {
         >
           {activeTab === 'overview' && <OverviewDashboard />}
           {activeTab === 'hero' && <HeroSection />}
-          {activeTab === 'feed' && <ReadinessFeed />}
           {activeTab === 'candidate_profile' && (
             <Suspense fallback={<LazyModuleFallback label="Candidate Identity Hub" />}>
               <CandidateProfile />
-            </Suspense>
-          )}
-          {activeTab === 'profile_analytics' && (
-            <Suspense fallback={<LazyModuleFallback label="Reach Accuracy Index" />}>
-              <ProfileAnalytics />
             </Suspense>
           )}
           {activeTab === 'matcher' && <ResumeMatcher />}

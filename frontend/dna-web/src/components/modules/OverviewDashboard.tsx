@@ -6,7 +6,7 @@ import { useSpatialStore } from '@/lib/store';
 import { NAV_GROUPS, TOTAL_SECTIONS } from '@/lib/navigation';
 import {
   Activity, ShieldCheck, Users, Cpu, ArrowRight, CircleDot, Zap,
-  Layers, Lock, TrendingUp, CheckCircle2, Clock, Command, Code2, Mic, BookOpen, Bell, Briefcase
+  Layers, Lock, TrendingUp, CheckCircle2, Clock, Command, Code2, Mic, BookOpen, Bell, Briefcase, Fingerprint
 } from 'lucide-react';
 
 /* ── Unified Platform KPI definitions ── */
@@ -79,10 +79,10 @@ export default function OverviewDashboard() {
               <Zap size={14} className="text-amber-500" /> 3D Hero Demo
             </button>
             <button
-              onClick={() => navigateTo('feed')}
+              onClick={() => navigateTo('candidate_profile')}
               className="px-4 py-2.5 rounded-xl border border-[var(--glass-border-subtle)] bg-[var(--glass-bg)] text-[var(--fg-color)] hover:border-[var(--glass-border)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Users size={14} className="text-cyan-500" /> Social Readiness Feed
+              <Fingerprint size={14} className="text-cyan-500" /> Candidate Identity Hub
             </button>
             <button
               onClick={() => navigateTo('matcher')}

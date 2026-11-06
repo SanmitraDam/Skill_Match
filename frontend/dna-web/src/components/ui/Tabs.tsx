@@ -12,19 +12,15 @@ import {
   BookOpen,
   Code2,
   LayoutDashboard,
-  Users,
   Bell,
   Sparkles,
   Fingerprint,
-  BarChart3
 } from 'lucide-react';
 
 const TAB_CONFIG: Record<Tab, { label: string; icon: any }> = {
   overview: { label: 'Command Center', icon: LayoutDashboard },
   hero: { label: 'Landing Experience', icon: Sparkles },
-  feed: { label: 'Social Feed', icon: Users },
   candidate_profile: { label: 'Identity Hub', icon: Fingerprint },
-  profile_analytics: { label: 'Reach Accuracy', icon: BarChart3 },
   matcher: { label: 'DNA Matcher', icon: Layout },
   cv_builder: { label: 'JD-Tailored CV & ATS', icon: Briefcase },
   gap_intelligence: { label: 'Skill Gap Intelligence', icon: Brain },
