@@ -89,11 +89,32 @@ async def send_verification(req: SendVerificationRequest, db: Session = Depends(
 
     # Generate cryptographically secure 6-digit OTP
     code = f"{random.randint(100000, 999999)}"
+    expires_at = time.time() + 600
     VERIFICATION_STORE[email_clean] = {
         "code": code,
-        "expires_at": time.time() + 600,
+        "expires_at": expires_at,
         "purpose": req.purpose
     }
+
+    # Persist to Postgres for serverless resilience across Lambda invocations
+    try:
+        vc = db.query(models.VerificationCode).filter(models.VerificationCode.email == email_clean).first()
+        if not vc:
+            vc = models.VerificationCode(
+                email=email_clean,
+                code=code,
+                purpose=req.purpose,
+                expires_at=expires_at
+            )
+            db.add(vc)
+        else:
+            vc.code = code
+            vc.purpose = req.purpose
+            vc.expires_at = expires_at
+        db.commit()
+    except Exception as e:
+        logger.warning(f"Could not persist verification code to DB: {e}")
+        db.rollback()
 
     # Dispatch via Email Service (SMTP or terminal fallback)
     dispatched, dispatch_msg = await email_service.send_otp(email_clean, code, purpose=req.purpose)
@@ -114,12 +135,12 @@ async def send_verification(req: SendVerificationRequest, db: Session = Depends(
     return response_payload
 
 @router.post("/verify-code")
-async def verify_code(req: VerifyCodeRequest):
+async def verify_code(req: VerifyCodeRequest, db: Session = Depends(get_db)):
     email_clean = req.email.lower().strip()
     stored = VERIFICATION_STORE.get(email_clean)
     code_entered = req.code.strip()
 
-    # Valid if entered code matches active OTP and has not expired
+    # 1. Check in-memory store
     if stored and stored["code"] == code_entered and stored["expires_at"] > time.time():
         return {
             "verified": True,
@@ -127,6 +148,21 @@ async def verify_code(req: VerifyCodeRequest):
             "status": "AUTHENTICATED",
             "message": "Identity verification successfully confirmed."
         }
+
+    # 2. Check persistent Postgres store (reliable across serverless lambdas)
+    try:
+        db_stored = db.query(models.VerificationCode).filter(
+            models.VerificationCode.email == email_clean
+        ).first()
+        if db_stored and db_stored.code == code_entered and db_stored.expires_at > time.time():
+            return {
+                "verified": True,
+                "email": email_clean,
+                "status": "AUTHENTICATED",
+                "message": "Identity verification successfully confirmed."
+            }
+    except Exception as e:
+        logger.warning(f"DB verification lookup error: {e}")
 
     # Verify against Neon Auth OTP service
     neon_valid = await email_service.verify_neon_otp(email_clean, code_entered)

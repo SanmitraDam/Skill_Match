@@ -419,4 +419,16 @@ class StoredFile(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
+class VerificationCode(Base):
+    """Database-backed persistent OTP codes for serverless resilience."""
+    __tablename__ = "verification_codes"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), nullable=False, index=True)
+    code = Column(String(16), nullable=False)
+    purpose = Column(String(32), default="signup", nullable=False)
+    expires_at = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+
 
