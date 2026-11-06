@@ -6,7 +6,8 @@
     "dev": "npm --prefix frontend/dna-web run dev",
     "build": "npm --prefix frontend/dna-web run build",
     "start": "npm --prefix frontend/dna-web start",
-    "install:all": "npm --prefix frontend/dna-web install"
+    "install:all": "npm --prefix frontend/dna-web install",
+    "env:vercel": "python scripts/sync_vercel_env.py --push"
   },
   "dependencies": {
     "@neon/config": "^1.11.3",
