@@ -70,6 +70,15 @@ def main():
         "NEON_REALTIME_URL": root_vars.get("NEON_REALTIME_URL", ""),
         "NEON_REALTIME_SECRET": root_vars.get("NEON_REALTIME_SECRET", ""),
         "NEON_FUNCTION_HELLO_BASE_URL": root_vars.get("NEON_FUNCTION_HELLO_BASE_URL", ""),
+
+        # Transactional Email (SMTP) if configured
+        "SMTP_HOST": root_vars.get("SMTP_HOST", ""),
+        "SMTP_PORT": root_vars.get("SMTP_PORT", "587"),
+        "SMTP_USER": root_vars.get("SMTP_USER", ""),
+        "SMTP_PASSWORD": root_vars.get("SMTP_PASSWORD", ""),
+        "SMTP_FROM_EMAIL": root_vars.get("SMTP_FROM_EMAIL", "auth@skillmatch.ai"),
+        "SMTP_FROM_NAME": root_vars.get("SMTP_FROM_NAME", "SkillMatch DNA Security"),
+        "SMTP_USE_TLS": root_vars.get("SMTP_USE_TLS", "true"),
     }
 
     # Write .env.vercel
@@ -92,15 +101,20 @@ def main():
                 for k, v in vercel_vars.items():
                     if not v:
                         continue
-                    cmd = [
-                        "npx", "vercel", "env", "add", k,
-                        "--environment", "production,preview,development",
-                        "--value", str(v),
-                        "--force",
-                        "--yes"
-                    ]
                     print(f"  Uploading {k}...")
-                    subprocess.run(cmd, shell=True)
+                    # Remove existing if present to avoid collision
+                    subprocess.run(["npx.cmd", "vercel", "env", "rm", k, "--yes"], capture_output=True)
+                    # Add new value piped via stdin to prevent cmd.exe symbol escaping errors
+                    p = subprocess.run(
+                        ["npx.cmd", "vercel", "env", "add", k, "--environment", "production,preview,development", "--yes"],
+                        input=str(v),
+                        text=True,
+                        capture_output=True
+                    )
+                    if p.returncode == 0:
+                        print(f"    [OK] Added {k}")
+                    else:
+                        print(f"    [WARN] {k}: {p.stderr.strip()[:100]}")
                 print("[OK] All variables pushed to Vercel successfully!")
         else:
             print("[NOTICE] Vercel CLI is not logged in. To sync automatically:")
@@ -112,3 +126,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

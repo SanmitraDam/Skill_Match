@@ -56,6 +56,15 @@ class Settings(BaseSettings):
     ED25519_SECRET_KEY: str = os.getenv("ED25519_SECRET_KEY", "ed25519_priv_master_key_skillmatch_compliance_v4")
     DEFAULT_TENANT_ID: str = os.getenv("DEFAULT_TENANT_ID", "tenant_default")
 
+    # Transactional Email & OTP Delivery (SMTP / Gmail / SendGrid / Resend)
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "auth@skillmatch.ai")
+    SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "SkillMatch DNA Security")
+    SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "true").lower() in ("true", "1", "yes")
+
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
 settings = Settings()

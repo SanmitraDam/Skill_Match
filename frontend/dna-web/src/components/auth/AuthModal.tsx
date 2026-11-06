@@ -814,19 +814,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
                 </p>
               </div>
 
-              {/* Demo Helper Badge / Quick Autofill Chip */}
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex flex-wrap items-center justify-between gap-2">
-                <div className="text-[11px] text-emerald-300 font-mono">
-                  <span className="text-white/60">Demo Sandbox Code: </span>
-                  <span className="font-bold tracking-widest">{demoOtpCode}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleFillDemoOtp}
-                  className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-semibold transition-all cursor-pointer active:scale-95"
-                >
-                  Auto-fill Code
-                </button>
+              {/* Security Notice */}
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5">
+                <Mail size={16} className="text-emerald-400 shrink-0" />
+                <span className="text-xs text-emerald-200/90 leading-relaxed font-mono">
+                  Please enter the 6-digit verification code delivered to your email inbox.
+                </span>
               </div>
 
               {/* 6-Digit PIN Boxes */}

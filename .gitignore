@@ -2,6 +2,7 @@
 .env
 .env*
 !.env.example
+scratch/
 
 # Python
 .venv/
@@ -77,3 +78,6 @@ Thumbs.db
 *.swo
 
 .neon
+
+.vercel
+.env*

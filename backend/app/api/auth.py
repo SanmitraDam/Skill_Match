@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.models.database import get_db
 from app.models import models
 from app.services.auth_service import auth_service
+from app.services.email_service import email_service
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
@@ -94,13 +95,23 @@ async def send_verification(req: SendVerificationRequest, db: Session = Depends(
         "purpose": req.purpose
     }
 
-    return {
+    # Dispatch via Email Service (SMTP or terminal fallback)
+    dispatched, dispatch_msg = await email_service.send_otp(email_clean, code, purpose=req.purpose)
+
+    response_payload = {
         "status": "SENT",
         "email": email_clean,
         "expires_in_seconds": 600,
-        "demo_code": code,
-        "message": f"6-digit verification code successfully dispatched to {email_clean}"
+        "email_dispatched": dispatched,
+        "message": f"6-digit verification code successfully dispatched to {email_clean}" if dispatched else f"Verification code generated for {email_clean}."
     }
+
+    # If SMTP is not yet configured, provide demo_code in payload for developer convenience
+    if not email_service.is_smtp_configured():
+        response_payload["demo_code"] = code
+        response_payload["notice"] = "SMTP not configured: code logged to backend terminal."
+
+    return response_payload
 
 @router.post("/verify-code")
 async def verify_code(req: VerifyCodeRequest):
@@ -108,14 +119,24 @@ async def verify_code(req: VerifyCodeRequest):
     stored = VERIFICATION_STORE.get(email_clean)
     code_entered = req.code.strip()
 
-    # Accept either the generated OTP or standard sandbox demo token '123456'
-    if code_entered == "123456" or (stored and stored["code"] == code_entered and stored["expires_at"] > time.time()):
+    # Valid if entered code matches active OTP and has not expired
+    if stored and stored["code"] == code_entered and stored["expires_at"] > time.time():
         return {
             "verified": True,
             "email": email_clean,
             "status": "AUTHENTICATED",
             "message": "Identity verification successfully confirmed."
         }
+
+    # Sandbox fallback when SMTP is not configured
+    if not email_service.is_smtp_configured() and code_entered == "123456":
+        return {
+            "verified": True,
+            "email": email_clean,
+            "status": "AUTHENTICATED",
+            "message": "Identity verification confirmed via sandbox token."
+        }
+
     raise HTTPException(status_code=400, detail="Invalid or expired verification code. Please check your code or request a new one.")
 
 @router.post("/register")
