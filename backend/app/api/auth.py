@@ -5,7 +5,7 @@ from app.models.database import get_db
 from app.models import models
 from app.services.auth_service import auth_service
 from app.services.email_service import email_service
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional, List
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -17,7 +17,7 @@ import time
 
 class UserCreate(BaseModel):
     username: str
-    email: EmailStr
+    email: str
     password: str
     role: Optional[str] = "candidate" # candidate, recruiter, hiring_manager, compliance_officer, admin
     tenant_id: Optional[str] = "tenant_default"
@@ -48,11 +48,11 @@ class LoginJsonRequest(BaseModel):
     code: Optional[str] = None
 
 class SendVerificationRequest(BaseModel):
-    email: EmailStr
+    email: str
     purpose: Optional[str] = "signup"
 
 class VerifyCodeRequest(BaseModel):
-    email: EmailStr
+    email: str
     code: str
     purpose: Optional[str] = "signup"
 
@@ -65,7 +65,7 @@ class SSOCallbackRequest(BaseModel):
     provider: str # okta, azure_ad, ping, auth0
     sso_token_or_saml_response: str
     tenant_id: str = "tenant_default"
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     role: Optional[str] = "hiring_manager"
 
 ENTERPRISE_ROLES = ["candidate", "recruiter", "hiring_manager", "compliance_officer", "admin"]
