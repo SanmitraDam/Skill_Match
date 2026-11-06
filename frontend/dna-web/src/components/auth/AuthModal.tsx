@@ -10,7 +10,7 @@ import { useSpatialStore, UserProfile } from '@/lib/store';
 import { authService } from '@/lib/auth/auth-service';
 import {
   Mail, Lock, User, Shield, Check, AlertCircle, Eye, EyeOff,
-  ArrowRight, ArrowLeft, RefreshCw, Sparkles, KeyRound, X, CheckCircle2
+  ArrowRight, ArrowLeft, RefreshCw, Sparkles, KeyRound, X, CheckCircle2, Clock
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -860,6 +860,21 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
                 >
                   <RefreshCw size={12} className={resendCooldown > 0 ? '' : 'hover:rotate-180 transition-transform'} />
                   {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
+                </button>
+              </div>
+
+              {/* Delayed email notice with instant auto-fill button */}
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2 text-[11px] text-white/70">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Clock size={13} className="text-amber-400 shrink-0" />
+                  <span className="truncate">Email delayed? Check Spam or auto-fill:</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleFillDemoOtp}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 font-mono font-bold text-[11px] border border-emerald-500/30 transition-colors cursor-pointer shrink-0"
+                >
+                  Auto-Fill ({demoOtpCode || '123456'})
                 </button>
               </div>
 
