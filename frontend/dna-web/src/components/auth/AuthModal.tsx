@@ -505,7 +505,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
                   type="text"
                   value={loginIdentity}
                   onChange={(e) => setLoginIdentity(e.target.value)}
-                  placeholder="alex.chen@example.com or username"
+                  placeholder="Enter your email or username"
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/40 transition-all"
                   required
                 />
@@ -602,7 +602,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
                     type="text"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
-                    placeholder="Elena Rostova"
+                    placeholder="Enter your full name"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 transition-all"
                     required
                   />
@@ -616,7 +616,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
                     type="email"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
-                    placeholder="elena@example.com"
+                    placeholder="Enter your email address"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 transition-all"
                     required
                   />
