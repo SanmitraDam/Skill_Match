@@ -240,8 +240,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
       setStep('verify_otp');
       setIsAuthenticating(false);
     } catch (err: any) {
+      console.error('sendVerification error:', err);
       setIsAuthenticating(false);
-      setAuthError(err?.response?.data?.detail || 'Could not initiate identity verification. Please verify email.');
+      const detail = err?.response?.data?.detail || err?.response?.data?.message || (err?.code === 'ERR_NETWORK' ? 'Unable to reach backend server on port 8000. Please ensure the backend is running.' : null) || err?.message || 'Could not initiate identity verification. Please verify email.';
+      setAuthError(detail);
     }
   };
 

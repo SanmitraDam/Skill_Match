@@ -124,7 +124,8 @@ app.include_router(talent_exchange.router)
 app.include_router(talent_mobility.router)
 app.include_router(cv.router)
 
-# API v1 Aliases for Gateway & Client Compatibility
+# API v1 & /api Aliases for Gateway & Client Compatibility
+app.include_router(auth.router, prefix="/api")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(skills.router, prefix="/api/v1")
 app.include_router(dna_matrix.router, prefix="/api/v1")

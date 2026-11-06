@@ -8,8 +8,9 @@ export const authApi = axios.create({
   },
 });
 
-// Attach bearer token from localStorage if available
+// Attach bearer token from localStorage if available and ensure fresh baseURL
 authApi.interceptors.request.use((config) => {
+  config.baseURL = getAuthApiBaseUrl();
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('skillmatch_auth_token');
     if (token) {
