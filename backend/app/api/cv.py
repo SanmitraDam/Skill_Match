@@ -3,9 +3,12 @@ CV Builder & ATS Checker Router — SkillMatch DNA v2.1
 Implements Module 4 (FR-06 & FR-07) from prd-v2.md
 """
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
+import re
 from app.services.ats_checker import ats_checker_service
+from app.services.pdf_export_service import generate_pdf_from_cv
 
 router = APIRouter(prefix="/cv", tags=["CV Builder & ATS Checker v2.1"])
 
@@ -55,3 +58,35 @@ async def check_ats_compatibility(req: ATSCheckRequest):
         return evaluation
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"ATS check failed: {str(e)}")
+
+class ExportPDFRequest(BaseModel):
+    structured_cv: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    cv_markdown: Optional[str] = Field(default="")
+    candidate_name: Optional[str] = Field(default="Candidate")
+    target_role: Optional[str] = Field(default="Professional")
+
+@router.post("/export-pdf")
+async def export_cv_pdf(req: ExportPDFRequest):
+    """
+    Synthesizes and downloads a clean, professional, ATS-compliant PDF of the tailored resume.
+    """
+    try:
+        pdf_bytes = generate_pdf_from_cv(
+            structured_cv=req.structured_cv or {},
+            cv_markdown=req.cv_markdown or ""
+        )
+        safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', req.candidate_name or "Tailored_CV").strip('_')
+        if not safe_name:
+            safe_name = "Tailored_CV"
+        filename = f"{safe_name}_Resume.pdf"
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Access-Control-Expose-Headers": "Content-Disposition"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF export failed: {str(e)}")

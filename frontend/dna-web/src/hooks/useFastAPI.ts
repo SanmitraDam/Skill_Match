@@ -268,6 +268,34 @@ export function useATSCheck() {
   });
 }
 
+export function useExportCVPDF() {
+  return useMutation({
+    mutationFn: async (payload: {
+      structured_cv: Record<string, any>;
+      cv_markdown?: string;
+      candidate_name?: string;
+      target_role?: string;
+    }) => {
+      let res = await fetch(`${API_BASE}/api/v1/cv/export-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        res = await fetch(`${API_BASE}/cv/export-pdf`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+      if (!res.ok) {
+        throw new Error('Failed to download CV PDF');
+      }
+      return res.blob();
+    },
+  });
+}
+
 export function useGenerateRoadmap() {
   return useMutation({
     mutationFn: async (readinessId: number) => {

@@ -497,3 +497,53 @@ img, video, canvas, svg {
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   10. PRINT MEDIA STYLES: Isolated Executive Resume Document Export
+   ────────────────────────────────────────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  /* Hide entire page structure */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the CV print container and its contents */
+  #cv-printable-document,
+  #cv-printable-document * {
+    visibility: visible !important;
+  }
+
+  #cv-printable-document {
+    display: block !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 12mm 16mm !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    z-index: 999999 !important;
+  }
+
+  /* Prevent page breaks inside entries */
+  #cv-printable-document h2,
+  #cv-printable-document h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  #cv-printable-document .cv-entry-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+

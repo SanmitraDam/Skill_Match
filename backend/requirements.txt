@@ -19,9 +19,10 @@ alembic==1.20.0
 psycopg2-binary>=2.9.9
 sqlalchemy-cockroachdb>=2.0.0
 
-# Document Parsing (PDF extraction)
+# Document Parsing & PDF Generation
 pymupdf==1.28.2
 pypdf==6.19.0
+reportlab>=4.0.0
 
 # Cloud AI & Audio Streaming
 httpx==0.28.1

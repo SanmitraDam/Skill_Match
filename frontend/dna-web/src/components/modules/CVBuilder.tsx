@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText, Sparkles, CheckCircle2, AlertTriangle, Download, Copy,
   Check, ArrowRight, RefreshCw, Layers, ShieldCheck, Zap, Target,
-  Briefcase, GraduationCap, Code2, Plus, Sliders
+  Briefcase, GraduationCap, Code2, Plus, Sliders, Printer
 } from 'lucide-react';
-import { useGenerateTailoredCV, useATSCheck } from '@/hooks/useFastAPI';
+import { useGenerateTailoredCV, useATSCheck, useExportCVPDF } from '@/hooks/useFastAPI';
 import { TailoredCVResponse, ATSEvaluation } from '@/types/api';
 import { useSpatialStore } from '@/lib/store';
 
@@ -88,6 +88,8 @@ export function CVBuilder() {
   // API mutations
   const generateMut = useGenerateTailoredCV();
   const atsCheckMut = useATSCheck();
+  const exportPdfMut = useExportCVPDF();
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const handleApplyPreset = (preset: typeof PRESET_JDS[0]) => {
     setTargetRole(preset.role);
@@ -147,6 +149,35 @@ export function CVBuilder() {
     navigator.clipboard.writeText(generatedCV.cv_markdown);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleExportPDF = async () => {
+    if (!generatedCV) return;
+    setIsExportingPdf(true);
+    try {
+      const blob = await exportPdfMut.mutateAsync({
+        structured_cv: generatedCV.structured_cv,
+        cv_markdown: generatedCV.cv_markdown,
+        candidate_name: generatedCV.structured_cv?.header?.name || candidateProfile.name,
+        target_role: targetRole,
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safeName = (generatedCV.structured_cv?.header?.name || candidateProfile.name || 'Tailored_CV')
+        .replace(/[^a-zA-Z0-9_-]/g, '_');
+      a.download = `${safeName}_Resume.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn("Direct PDF export fallback to isolated print:", err);
+      window.print();
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   const handlePrint = () => {
@@ -464,12 +495,31 @@ export function CVBuilder() {
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
                 <button
+                  onClick={handleExportPDF}
+                  disabled={!generatedCV || isExportingPdf}
+                  title="Directly download clean PDF document"
+                  className="theme-primary-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-40"
+                >
+                  {isExportingPdf ? (
+                    <>
+                      <RefreshCw size={13} className="animate-spin" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download size={13} />
+                      Export PDF
+                    </>
+                  )}
+                </button>
+                <button
                   onClick={handlePrint}
                   disabled={!generatedCV}
+                  title="Print or Save via Browser"
                   className="px-3 py-1.5 rounded-lg border border-[var(--glass-border-subtle)] bg-[var(--bg-subtle)] text-[var(--fg-color)] hover:border-[var(--glass-border)] text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
                 >
-                  <Download size={13} />
-                  Export PDF
+                  <Printer size={13} />
+                  Print
                 </button>
               </div>
             </div>
@@ -478,100 +528,104 @@ export function CVBuilder() {
             <div className="p-6 min-h-[480px]">
               {generatedCV ? (
                 <>
-                  {activeViewTab === 'preview' && (
-                    <div className="space-y-6 max-w-3xl mx-auto bg-white text-slate-900 p-8 rounded-xl shadow-md font-sans print:shadow-none print:p-0">
-                      {/* Executive Header */}
-                      <div className="border-b border-slate-300 pb-4 text-center">
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-950">
-                          {generatedCV.structured_cv.header.name}
-                        </h2>
-                        <div className="text-xs font-semibold text-slate-700 mt-1">
-                          {generatedCV.structured_cv.header.role} • {generatedCV.structured_cv.header.location}
-                        </div>
-                        <div className="text-[11px] text-slate-500 mt-1 space-x-2">
-                          <span>{generatedCV.structured_cv.header.email}</span>
-                          <span>•</span>
-                          <span>{generatedCV.structured_cv.header.phone}</span>
-                          <span>•</span>
-                          <span>{generatedCV.structured_cv.header.links.join(" • ")}</span>
-                        </div>
+                  {/* Executive Preview (Always rendered with printable ID; visible in preview tab or isolated during print) */}
+                  <div
+                    id="cv-printable-document"
+                    className={`space-y-6 max-w-3xl mx-auto bg-white text-slate-900 p-8 rounded-xl shadow-md font-sans print:shadow-none print:p-0 ${
+                      activeViewTab === 'preview' ? 'block' : 'hidden print:block'
+                    }`}
+                  >
+                    {/* Executive Header */}
+                    <div className="border-b border-slate-300 pb-4 text-center cv-entry-block">
+                      <h2 className="text-2xl font-bold tracking-tight text-slate-950">
+                        {generatedCV.structured_cv.header.name}
+                      </h2>
+                      <div className="text-xs font-semibold text-slate-700 mt-1">
+                        {generatedCV.structured_cv.header.role} • {generatedCV.structured_cv.header.location}
                       </div>
-
-                      {/* Summary */}
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2">
-                          Professional Summary
-                        </h3>
-                        <p className="text-xs text-slate-700 leading-relaxed">
-                          {generatedCV.structured_cv.summary}
-                        </p>
+                      <div className="text-[11px] text-slate-500 mt-1 space-x-2">
+                        <span>{generatedCV.structured_cv.header.email}</span>
+                        <span>•</span>
+                        <span>{generatedCV.structured_cv.header.phone}</span>
+                        <span>•</span>
+                        <span>{generatedCV.structured_cv.header.links.join(" • ")}</span>
                       </div>
+                    </div>
 
-                      {/* Core Skills */}
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2">
-                          Technical Competencies
-                        </h3>
-                        <div className="text-xs text-slate-800 space-y-1">
-                          <div>
-                            <span className="font-semibold">Core Technical Skills:</span>{" "}
-                            {generatedCV.structured_cv.skills.core.join(", ")}
-                          </div>
-                          <div>
-                            <span className="font-semibold">Tools &amp; Infrastructure:</span>{" "}
-                            {generatedCV.structured_cv.skills.tools.join(", ")}
-                          </div>
+                    {/* Summary */}
+                    <div className="cv-entry-block">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2">
+                        Professional Summary
+                      </h3>
+                      <p className="text-xs text-slate-700 leading-relaxed">
+                        {generatedCV.structured_cv.summary}
+                      </p>
+                    </div>
+
+                    {/* Core Skills */}
+                    <div className="cv-entry-block">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2">
+                        Technical Competencies
+                      </h3>
+                      <div className="text-xs text-slate-800 space-y-1">
+                        <div>
+                          <span className="font-semibold">Core Technical Skills:</span>{" "}
+                          {generatedCV.structured_cv.skills.core.join(", ")}
                         </div>
-                      </div>
-
-                      {/* Experience */}
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2">
-                          Professional Experience
-                        </h3>
-                        <div className="space-y-4">
-                          {generatedCV.structured_cv.experience.map((exp, idx) => (
-                            <div key={idx} className="space-y-1">
-                              <div className="flex justify-between items-baseline text-xs">
-                                <span className="font-bold text-slate-950">
-                                  {exp.title} — <span className="font-semibold text-slate-700">{exp.company}</span>
-                                </span>
-                                <span className="font-mono text-[11px] text-slate-500">{exp.duration}</span>
-                              </div>
-                              <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-slate-700 leading-relaxed">
-                                {exp.bullets.map((b, bIdx) => (
-                                  <li key={bIdx}>{b}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Education */}
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2">
-                          Education &amp; Credentials
-                        </h3>
-                        <div className="space-y-2">
-                          {generatedCV.structured_cv.education.map((edu, idx) => (
-                            <div key={idx} className="text-xs">
-                              <div className="flex justify-between font-semibold text-slate-900">
-                                <span>{edu.degree} — {edu.institution}</span>
-                                <span className="font-mono text-[11px] text-slate-500">{edu.year}</span>
-                              </div>
-                              {edu.details && (
-                                <p className="text-[11px] text-slate-600">{edu.details}</p>
-                              )}
-                            </div>
-                          ))}
+                        <div>
+                          <span className="font-semibold">Tools &amp; Infrastructure:</span>{" "}
+                          {generatedCV.structured_cv.skills.tools.join(", ")}
                         </div>
                       </div>
                     </div>
-                  )}
+
+                    {/* Experience */}
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2">
+                        Professional Experience
+                      </h3>
+                      <div className="space-y-4">
+                        {generatedCV.structured_cv.experience.map((exp, idx) => (
+                          <div key={idx} className="space-y-1 cv-entry-block">
+                            <div className="flex justify-between items-baseline text-xs">
+                              <span className="font-bold text-slate-950">
+                                {exp.title} — <span className="font-semibold text-slate-700">{exp.company}</span>
+                              </span>
+                              <span className="font-mono text-[11px] text-slate-500">{exp.duration}</span>
+                            </div>
+                            <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-slate-700 leading-relaxed">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx}>{b}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Education */}
+                    <div className="cv-entry-block">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1 mb-2">
+                        Education &amp; Credentials
+                      </h3>
+                      <div className="space-y-2">
+                        {generatedCV.structured_cv.education.map((edu, idx) => (
+                          <div key={idx} className="text-xs">
+                            <div className="flex justify-between font-semibold text-slate-900">
+                              <span>{edu.degree} — {edu.institution}</span>
+                              <span className="font-mono text-[11px] text-slate-500">{edu.year}</span>
+                            </div>
+                            {edu.details && (
+                              <p className="text-[11px] text-slate-600">{edu.details}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
                   {activeViewTab === 'markdown' && (
-                    <div className="space-y-2">
+                    <div className="space-y-2 print:hidden">
                       <textarea
                         readOnly
                         rows={20}
@@ -582,7 +636,7 @@ export function CVBuilder() {
                   )}
 
                   {activeViewTab === 'ats_report' && atsEval && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 print:hidden">
                       <div className="p-4 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border-subtle)] space-y-3">
                         <h4 className="text-sm font-bold text-[var(--fg-color)] flex items-center gap-2">
                           <CheckCircle2 size={16} className="text-emerald-500" />
