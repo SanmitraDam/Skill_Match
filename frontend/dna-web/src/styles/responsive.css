@@ -171,8 +171,11 @@ img, video, canvas, svg {
     grid-template-columns: 1fr !important;
   }
 
-  /* Touch Target Ergonomics */
-  button, input, select, textarea {
+  /* Touch Target Ergonomics - apply to standard buttons and form inputs, excluding toggle switches and compact controls */
+  button:not([role="switch"]):not([data-switch]):not(.compact-btn):not([class*="h-"]),
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
     min-height: 38px;
   }
 }

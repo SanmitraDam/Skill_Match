@@ -81,20 +81,38 @@ export function ResumeMatcher() {
               <button
                 type="button"
                 role="switch"
+                data-switch="true"
                 aria-checked={anonymizePii}
                 onClick={() => setAnonymizePii(!anonymizePii)}
+                style={{
+                  width: '44px',
+                  minWidth: '44px',
+                  maxWidth: '44px',
+                  height: '24px',
+                  minHeight: '24px',
+                  maxHeight: '24px',
+                  padding: '2px',
+                  border: 'none',
+                  outline: 'none',
+                }}
                 className={cn(
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2",
+                  "relative inline-flex items-center shrink-0 cursor-pointer rounded-full transition-colors duration-200 select-none box-border",
                   anonymizePii ? "bg-cyan-500 shadow-sm shadow-cyan-500/30" : "bg-slate-300 dark:bg-white/20"
                 )}
               >
                 <span className="sr-only">Toggle Bias-Free PII Masking</span>
                 <span
                   aria-hidden="true"
-                  className={cn(
-                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
-                    anonymizePii ? "translate-x-5" : "translate-x-0"
-                  )}
+                  style={{
+                    width: '20px',
+                    minWidth: '20px',
+                    maxWidth: '20px',
+                    height: '20px',
+                    minHeight: '20px',
+                    maxHeight: '20px',
+                    transform: anonymizePii ? 'translateX(20px)' : 'translateX(0px)',
+                  }}
+                  className="pointer-events-none block rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out"
                 />
               </button>
             </div>
