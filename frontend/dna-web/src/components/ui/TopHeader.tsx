@@ -172,10 +172,10 @@ export default function TopHeader({ onAuthClick }: { onAuthClick: (mode?: 'signi
             title={user.name}
           >
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-slate-950 font-bold text-xs shadow-sm">
-              {user.name.charAt(0).toUpperCase()}
+              {(user.name || user.email || 'U').charAt(0).toUpperCase()}
             </div>
             <span className="hidden md:inline text-xs font-medium text-[var(--fg-color)] max-w-[100px] truncate">
-              {user.name}
+              {user.name || user.email || 'Candidate'}
             </span>
           </button>
 

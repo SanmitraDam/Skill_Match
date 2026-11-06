@@ -50,6 +50,7 @@ def ensure_schema_compatibility(target_engine):
                 "candidate_profiles": [
                     ("candidate_name", "VARCHAR(255)"),
                     ("avatar_url", "VARCHAR(500)"),
+                    ("profile_completed", "BOOLEAN DEFAULT 0"),
                 ],
                 "readiness_posts": [
                     ("peer_verifications_count", "INTEGER DEFAULT 0"),
@@ -64,6 +65,13 @@ def ensure_schema_compatibility(target_engine):
                         if col_names and column not in col_names:
                             conn.execute(text(f"ALTER TABLE {tbl} ADD COLUMN {column} {ddl_type}"))
                             conn.commit()
+                except Exception:
+                    pass
+
+            if "postgres" in str(target_engine.url).lower() or "cockroach" in str(target_engine.url).lower():
+                try:
+                    conn.execute(text("ALTER TABLE candidate_profiles ADD COLUMN IF NOT EXISTS profile_completed BOOLEAN DEFAULT FALSE"))
+                    conn.commit()
                 except Exception:
                     pass
     except Exception:

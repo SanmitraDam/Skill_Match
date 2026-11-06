@@ -209,3 +209,4 @@ def _build_pymupdf_pdf(structured_cv: Dict[str, Any], cv_markdown: str) -> bytes
     rect = pymupdf.Rect(40, 40, 555, 800)
     page.insert_textbox(rect, text, fontsize=10, fontname='helv')
     return doc.tobytes()
+

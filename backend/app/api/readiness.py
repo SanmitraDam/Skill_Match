@@ -200,6 +200,7 @@ class CandidateProfileUpdate(BaseModel):
     a_quiz_score: Optional[float] = None
     i_voice_score: Optional[float] = None
     liveness_verified: Optional[bool] = None
+    profile_completed: Optional[bool] = None
 
 
 # ---------------------------------------------------------------------------
@@ -214,6 +215,49 @@ def _coerce_user_id(raw: Any) -> Optional[int]:
         return int(str(raw).strip())
     except (TypeError, ValueError):
         return None
+
+
+def _find_user(db: Optional[Session], candidate_id: str) -> Optional[models.User]:
+    """Finds a models.User row matching candidate_id by id, email, or username."""
+    if db is None or not candidate_id:
+        return None
+    cand_str = str(candidate_id).strip()
+
+    # 1. Try numeric ID
+    numeric = _coerce_user_id(cand_str)
+    if numeric is not None:
+        try:
+            user = db.query(models.User).filter(models.User.id == numeric).first()
+            if user:
+                return user
+        except Exception:
+            db.rollback()
+
+    # 2. Try email match
+    cand_lower = cand_str.lower()
+    try:
+        user = db.query(models.User).filter(models.User.email == cand_lower).first()
+        if user:
+            return user
+    except Exception:
+        db.rollback()
+
+    # 3. Try username match
+    cand_under = cand_str.replace(" ", "_")
+    cand_space = cand_str.replace("_", " ")
+    try:
+        user = db.query(models.User).filter(
+            (models.User.username == cand_str) |
+            (models.User.username == cand_lower) |
+            (models.User.username == cand_under) |
+            (models.User.username == cand_space)
+        ).first()
+        if user:
+            return user
+    except Exception:
+        db.rollback()
+
+    return None
 
 
 def _seeded_unit(seed: str) -> float:
@@ -569,9 +613,12 @@ def _profile_payload(
     user_id: str,
     profile: Optional[models.CandidateProfile],
     profile_views_count: int,
+    db: Optional[Session] = None,
 ) -> Dict[str, Any]:
     """Builds the Candidate Identity Hub payload consumed by CandidateProfile.tsx."""
     candidate_key = str(user_id)
+    db_user = _find_user(db, candidate_key) if db is not None else None
+
     breakdown = _breakdown_from_profile(profile, candidate_key)
     ccrs = float(profile.ccrs_score or 0.0) if profile else 0.0
     if not ccrs:
@@ -579,10 +626,35 @@ def _profile_payload(
 
     verification_status = (profile.verification_status if profile else None) or "VERIFIED_CANDIDATE"
     liveness_verified = bool(profile.liveness_verified) if profile else True
-    social_profiles = (profile.social_profiles if profile and profile.social_profiles else None) or _default_social_profiles(candidate_key)
-    anc_performance = (profile.anc_performance if profile and profile.anc_performance else None) or _default_anc_performance()
-    display_name = (profile.candidate_name if profile and profile.candidate_name else "SkillMatch Candidate")
+
+    # Robust display name resolution: prefer user-edited name, then DB User username, then fallback
+    if profile and profile.candidate_name and profile.candidate_name.strip() and profile.candidate_name != "SkillMatch Candidate":
+        display_name = profile.candidate_name.strip()
+    elif db_user and db_user.username:
+        display_name = db_user.username.replace("_", " ").title()
+    elif db_user and db_user.email:
+        display_name = db_user.email.split("@")[0].replace(".", " ").replace("_", " ").title()
+    else:
+        display_name = "SkillMatch Candidate"
+
     handle = display_name.lower().replace(" ", "").replace(".", "")
+    if not handle:
+        handle = "candidate"
+
+    default_socials = {
+        "github": f"https://github.com/{handle}",
+        "linkedin": f"https://linkedin.com/in/{handle}",
+        "portfolio": f"https://{handle}.dev",
+    }
+    social_profiles = (profile.social_profiles if profile and profile.social_profiles else None) or default_socials
+    anc_performance = (profile.anc_performance if profile and profile.anc_performance else None) or _default_anc_performance()
+
+    is_completed = bool(
+        profile and (
+            getattr(profile, "profile_completed", False) or 
+            (profile.headline and profile.location and profile.candidate_name and profile.candidate_name != "SkillMatch Candidate")
+        )
+    )
 
     default_skills = [
         {"name": "Python / FastAPI", "level": "Expert", "category": "Backend", "years": 5},
@@ -594,42 +666,24 @@ def _profile_payload(
     ]
     default_education = [
         {
-            "degree": "M.S. in Computer Science & Distributed Systems",
-            "institution": "Technical University of Munich",
-            "field_of_study": "Autonomous Intelligent Systems",
-            "start_year": "2020",
+            "degree": "B.S. in Computer Science & Engineering",
+            "institution": "Technical Institute",
+            "field_of_study": "Systems & Cloud Computing",
+            "start_year": "2018",
             "end_year": "2022",
-            "grade": "Distinction (1.2/1.0)",
-            "description": "Thesis on Sub-millisecond Neural Inference Pipelines and Latency-Optimal Scheduling.",
-        },
-        {
-            "degree": "B.S. in Software Engineering",
-            "institution": "University of Waterloo",
-            "field_of_study": "Systems Software & Networking",
-            "start_year": "2016",
-            "end_year": "2020",
-            "grade": "Dean's Honors List",
-            "description": "Cap-stone award in resilient microservice architecture and Raft consensus.",
+            "grade": "First Class with Distinction",
+            "description": "Graduation capstone in high-performance distributed systems.",
         },
     ]
     default_experience = [
         {
-            "role": "Staff LLM Infrastructure Engineer",
-            "company": "Helios Systems Lab",
-            "location": "Berlin, Germany (Hybrid)",
-            "start_date": "2023",
+            "role": profile.headline if profile and profile.headline else "Full-Stack Software Engineer",
+            "company": "Enterprise Tech Lab",
+            "location": profile.location if profile and profile.location else "Remote",
+            "start_date": "2022",
             "end_date": "Present",
             "current": True,
-            "description": "Spearheaded low-latency LLM inference clusters serving 15M daily requests. Reduced TTFT by 42% utilizing speculative decoding and flash-attention kernels.",
-        },
-        {
-            "role": "Senior Distributed Backend Architect",
-            "company": "NovaCloud Technologies",
-            "location": "Zurich, Switzerland",
-            "start_date": "2021",
-            "end_date": "2023",
-            "current": False,
-            "description": "Designed fault-tolerant streaming pipelines with Kafka, Go, and Redis clusters achieving 99.999% availability.",
+            "description": "Building cloud microservices and scalable AI-driven web architectures.",
         },
     ]
 
@@ -638,16 +692,17 @@ def _profile_payload(
     experience = (profile.experience if profile and profile.experience is not None else default_experience)
 
     return {
-        "user_id": str(user_id),
+        "user_id": str(db_user.id if db_user else user_id),
         "candidate_name": display_name,
-        "candidate_role": (profile.headline if profile and profile.headline else "Distributed AI Systems Engineer"),
-        "headline": (profile.headline if profile and profile.headline else "Distributed AI Systems Engineer"),
+        "candidate_email": db_user.email if db_user else "",
+        "candidate_role": (profile.headline if profile and profile.headline else ("Senior Full-Stack Engineer" if db_user else "Distributed AI Systems Engineer")),
+        "headline": (profile.headline if profile and profile.headline else ("Senior Full-Stack Engineer" if db_user else "Distributed AI Systems Engineer")),
         "bio": (
             profile.bio
             if profile and profile.bio
-            else "Verified SkillMatch talent: resume DNA, adaptive CAT mastery and voice STAR rounds are all crypto-attested."
+            else f"Verified SkillMatch talent: {display_name}'s resume DNA, adaptive CAT mastery and voice STAR rounds are crypto-attested."
         ),
-        "location": (profile.location if profile and profile.location else "Remote | Global Talent Exchange"),
+        "location": (profile.location if profile and profile.location else ("Remote" if db_user else "Remote | Global Talent Exchange")),
         "avatar_url": (profile.avatar_url if profile and profile.avatar_url else ""),
         "avatar_gradient": "from-[var(--accent-primary)] to-[var(--accent-secondary)]",
         "verification_status": verification_status,
@@ -670,6 +725,7 @@ def _profile_payload(
         "social_profiles": social_profiles,
         "profile_views_count": profile_views_count,
         "public_proof_url": f"skillmatch.id/verify/{handle}",
+        "profile_completed": is_completed,
         "updated_at": (profile.updated_at.isoformat() if profile and profile.updated_at else datetime.utcnow().isoformat()),
     }
 
@@ -739,7 +795,20 @@ def _reach_payload(
 # ---------------------------------------------------------------------------
 
 def _profile_row(db: Session, candidate_id: str) -> Optional[models.CandidateProfile]:
-    """Fetches the persisted CandidateProfile row for either an int or opaque frontend id."""
+    """Fetches the persisted CandidateProfile row for either an int, email, username or opaque frontend id."""
+    user = _find_user(db, candidate_id)
+    if user:
+        try:
+            profile = (
+                db.query(models.CandidateProfile)
+                .filter(models.CandidateProfile.user_id == user.id)
+                .first()
+            )
+            if profile is not None:
+                return profile
+        except Exception:
+            db.rollback()
+
     numeric_id = _coerce_user_id(candidate_id)
     resolved_id = _resolve_db_user_id(candidate_id)
     for numeric in dict.fromkeys([numeric_id, resolved_id]):
@@ -751,10 +820,10 @@ def _profile_row(db: Session, candidate_id: str) -> Optional[models.CandidatePro
                 .filter(models.CandidateProfile.user_id == numeric)
                 .first()
             )
+            if profile is not None:
+                return profile
         except Exception:
-            profile = None
-        if profile is not None:
-            return profile
+            db.rollback()
     return None
 
 
@@ -896,7 +965,7 @@ async def get_candidate_profile(candidate_id: str, db: Session = Depends(get_db)
     profile = _profile_row(db, candidate_id)
     breakdown = _breakdown_from_profile(profile, candidate_id)
     view_count = _total_impressions(candidate_id, len(_view_rows(db, candidate_id, limit=500)))
-    return _profile_payload(candidate_id, profile, view_count)
+    return _profile_payload(candidate_id, profile, view_count, db=db)
 
 
 @router.put("/profiles/{candidate_id}")
@@ -906,28 +975,42 @@ async def update_candidate_profile(
     db: Session = Depends(get_db),
 ):
     """Upserts the editable identity hub fields for the signed-in candidate."""
+    user = _find_user(db, candidate_id)
+    if user:
+        target_user_id = user.id
+        default_name = user.username.replace("_", " ").title()
+    else:
+        target_user_id = _coerce_user_id(candidate_id) or _resolve_db_user_id(candidate_id)
+        default_name = "Candidate"
+
     profile = _profile_row(db, candidate_id)
     if profile is None:
-        profile = models.CandidateProfile(user_id=_resolve_db_user_id(candidate_id), candidate_name="SkillMatch Candidate")
+        profile = models.CandidateProfile(user_id=target_user_id, candidate_name=payload.candidate_name or default_name)
         db.add(profile)
 
     for field, value in payload.dict(exclude_unset=True).items():
-        if value is not None:
+        if value is not None and hasattr(profile, field):
             setattr(profile, field, value)
+
+    # Persist profile_completed
+    if payload.profile_completed is not None:
+        setattr(profile, "profile_completed", payload.profile_completed)
+    elif payload.headline or payload.location or payload.skills:
+        setattr(profile, "profile_completed", True)
 
     try:
         db.commit()
         db.refresh(profile)
-    except Exception:
+    except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Unable to update candidate profile.")
+        raise HTTPException(status_code=500, detail=f"Unable to update candidate profile: {str(e)}")
 
     breakdown = _breakdown_from_profile(profile, candidate_id)
     if not profile.ccrs_score:
         profile.ccrs_score = _ccrs_weighted(breakdown)
         db.commit()
     view_count = _total_impressions(candidate_id, len(_view_rows(db, candidate_id, limit=500)))
-    return _profile_payload(candidate_id, profile, view_count)
+    return _profile_payload(candidate_id, profile, view_count, db=db)
 
 
 @router.post("/profiles/{candidate_id}/view")

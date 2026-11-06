@@ -1122,6 +1122,7 @@ export interface CandidateProfile {
   social_profiles: SocialProofProfiles;
   profile_views_count: number;
   public_proof_url: string;
+  profile_completed?: boolean;
   updated_at: string;
 }
 
@@ -1143,6 +1144,7 @@ export interface CandidateProfileUpdate {
   a_quiz_score?: number;
   i_voice_score?: number;
   liveness_verified?: boolean;
+  profile_completed?: boolean;
 }
 
 /** One week of the deterministic 6-week impression series. */

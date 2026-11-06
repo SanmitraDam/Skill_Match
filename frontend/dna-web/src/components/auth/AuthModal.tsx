@@ -316,9 +316,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
     const profile: UserProfile = {
       id: String(res.user?.id || res.id || Date.now()),
       email: res.user?.email || res.email || activeEmail || loginIdentity,
-      name: res.user?.name || res.username?.replace(/_/g, ' ') || 'Spatial Member',
+      name: res.user?.name || (signupName.trim() || res.username?.replace(/_/g, ' ') || 'Spatial Member'),
+      username: res.user?.username || res.username || (signupName.trim() ? signupName.trim().toLowerCase().replace(/\s+/g, '_') : undefined),
       role: res.user?.role || res.role || 'candidate',
       tenant_id: res.user?.tenant_id || res.tenant_id || 'tenant_default',
+      profile_completed: Boolean(res.user?.profile_completed),
     };
 
     setUser(profile);

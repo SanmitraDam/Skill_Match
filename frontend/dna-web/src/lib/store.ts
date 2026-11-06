@@ -52,9 +52,15 @@ export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  role: 'candidate' | 'recruiter' | 'hiring_manager' | 'compliance_officer' | 'admin';
+  role: 'candidate' | 'recruiter' | 'hiring_manager' | 'compliance_officer' | 'admin' | string;
   tenant_id?: string;
   avatar?: string;
+  username?: string;
+  headline?: string;
+  location?: string;
+  bio?: string;
+  skills?: any[];
+  profile_completed?: boolean;
 }
 
 /** ── v27.0: Professional social readiness network slice (suggestion-v26.md Section 1) ── */
@@ -126,6 +132,18 @@ interface SpatialState extends SocialState {
   navigateTo: (tab: Tab) => void;
 }
 
+const getInitialUser = (): UserProfile | null => {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('skillmatch_user');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+  }
+  return null;
+};
+
+const initialUser = getInitialUser();
+
 export const useSpatialStore = create<SpatialState>((set, get) => ({
   activeTab: 'hero',
   isBackendOnline: false,
@@ -133,8 +151,8 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
   dnaRotationSpeed: 0.5,
   hasSeenIntro: false,
   performanceMode: 'high',
-  user: null,
-  isAuthenticated: false,
+  user: initialUser,
+  isAuthenticated: Boolean(initialUser),
   theme: 'dark',
   activeTenantId: 'tenant_default',
   dspNoiseSuppressionActive: true,
@@ -145,7 +163,7 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
   commandPaletteOpen: false,
 
   /* ── v27.0 social readiness network defaults ── */
-  socialProfileId: 'usr_8841',
+  socialProfileId: initialUser ? (initialUser.email || initialUser.username || String(initialUser.id)) : 'usr_8841',
   feedPosts: [],
   candidateProfiles: {},
   profileViews: {},
@@ -157,7 +175,20 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
   setDnaRotationSpeed: (val) => set({ dnaRotationSpeed: val }),
   setHasSeenIntro: (val) => set({ hasSeenIntro: val }),
   setPerformanceMode: (mode) => set({ performanceMode: mode }),
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    if (user) {
+      const activeId = user.email || user.username || String(user.id);
+      set({ user, isAuthenticated: true, socialProfileId: activeId });
+      try {
+        localStorage.setItem('skillmatch_user', JSON.stringify(user));
+      } catch (e) {}
+    } else {
+      set({ user: null, isAuthenticated: false, socialProfileId: 'usr_8841' });
+      try {
+        localStorage.removeItem('skillmatch_user');
+      } catch (e) {}
+    }
+  },
   setAuthenticated: (status) => set({ isAuthenticated: status }),
   setTheme: (theme) => set({ theme }),
   toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),

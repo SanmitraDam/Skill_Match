@@ -5,6 +5,7 @@ import Sidebar from '@/components/ui/Sidebar';
 import TopHeader from '@/components/ui/TopHeader';
 import Workspace from '@/components/modules/Workspace';
 import AuthModal from '@/components/auth/AuthModal';
+import OnboardingModal from '@/components/auth/OnboardingModal';
 import IntroSequence from '@/components/3d/IntroSequence';
 import CommandPalette from '@/components/ui/CommandPalette';
 import HeroSection from '@/components/hero/HeroSection';
@@ -65,6 +66,9 @@ export default function Home() {
         onClose={() => setAuthOpen(false)}
         initialMode={authMode}
       />
+
+      {/* Mandatory Onboarding Profile Setup Modal for new or incomplete accounts */}
+      <OnboardingModal />
     </main>
   );
 }

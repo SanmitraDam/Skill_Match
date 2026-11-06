@@ -401,6 +401,7 @@ class CandidateProfile(Base):
     skills = Column(JSON, nullable=True)
     education = Column(JSON, nullable=True)
     experience = Column(JSON, nullable=True)
+    profile_completed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 

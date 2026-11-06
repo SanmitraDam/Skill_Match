@@ -249,7 +249,8 @@ async def register(user_in: UserCreate, db: Session = Depends(get_db)):
             "username": new_user.username,
             "email": new_user.email,
             "role": assigned_role,
-            "tenant_id": new_user.tenant_id or "tenant_default"
+            "tenant_id": new_user.tenant_id or "tenant_default",
+            "profile_completed": False
         }
     }
 
@@ -388,6 +389,19 @@ async def login_json(req: LoginJsonRequest, db: Session = Depends(get_db)):
     tenant = user.tenant_id or "tenant_default"
     access_token = auth_service.create_access_token(data={"sub": user.email, "role": user_role, "tenant_id": tenant})
 
+    cand_profile = db.query(models.CandidateProfile).filter(models.CandidateProfile.user_id == user.id).first()
+    has_completed_profile = bool(
+        cand_profile and (
+            getattr(cand_profile, "profile_completed", False) or
+            (cand_profile.headline and cand_profile.location and cand_profile.candidate_name and cand_profile.candidate_name != "SkillMatch Candidate")
+        )
+    )
+    resolved_display_name = (
+        cand_profile.candidate_name.strip()
+        if cand_profile and cand_profile.candidate_name and cand_profile.candidate_name.strip() and cand_profile.candidate_name != "SkillMatch Candidate"
+        else user.username.replace("_", " ").title()
+    )
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -397,11 +411,12 @@ async def login_json(req: LoginJsonRequest, db: Session = Depends(get_db)):
         "tenant_id": tenant,
         "user": {
             "id": user.id,
-            "name": user.username.replace("_", " ").title(),
+            "name": resolved_display_name,
             "username": user.username,
             "email": user.email,
             "role": user_role,
-            "tenant_id": tenant
+            "tenant_id": tenant,
+            "profile_completed": has_completed_profile
         }
     }
 
