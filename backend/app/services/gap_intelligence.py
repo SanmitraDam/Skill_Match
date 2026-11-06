@@ -14,7 +14,7 @@ actionable career recovery blueprints:
 
 from __future__ import annotations
 import re
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
 
 from app.services.skill_taxonomy import categorize_skill, display_skill

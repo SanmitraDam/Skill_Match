@@ -1,4 +1,4 @@
-﻿"""Syncs the SkillMatch question bank to Cloudinary.
+"""Syncs the SkillMatch question bank to Cloudinary.
 
 PHYSICAL REALITY: 33.6 billion stored Q&A rows would need ~30+ TB â€” no
 cloud storage can hold that. So this syncs two things that DO fit:
