@@ -296,6 +296,55 @@ export function useExportCVPDF() {
   });
 }
 
+export function useParseResumeFile() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      let res = await fetch(`${API_BASE}/api/v1/cv/parse-resume-file`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) {
+        res = await fetch(`${API_BASE}/cv/parse-resume-file`, {
+          method: 'POST',
+          body: formData,
+        });
+      }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Failed to parse resume file' }));
+        throw new Error(err.detail || 'Failed to parse resume file');
+      }
+      return res.json() as Promise<Record<string, any>>;
+    },
+  });
+}
+
+export function useParseResumeText() {
+  return useMutation({
+    mutationFn: async (resumeText: string) => {
+      let res = await fetch(`${API_BASE}/api/v1/cv/parse-resume-text`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume_text: resumeText }),
+      });
+      if (!res.ok) {
+        res = await fetch(`${API_BASE}/cv/parse-resume-text`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resume_text: resumeText }),
+        });
+      }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Failed to parse resume text' }));
+        throw new Error(err.detail || 'Failed to parse resume text');
+      }
+      return res.json() as Promise<Record<string, any>>;
+    },
+  });
+}
+
 export function useGenerateRoadmap() {
   return useMutation({
     mutationFn: async (readinessId: number) => {

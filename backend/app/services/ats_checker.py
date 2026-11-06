@@ -281,13 +281,20 @@ class ATSCheckerService:
         verification_badge = str(profile_data.get("verification_badge") or "Verified Candidate")
 
         # 4. Professional Summary synthesis
-        summary = (
-            f"Results-driven {role} with verified hands-on expertise in {', '.join(jd_keywords[:3]) or 'scalable architectures'} "
-            f"and robust full-lifecycle cloud systems. Proven track record of architecting high-throughput microservices, optimizing "
-            f"algorithmic latency, and delivering secure, production-grade solutions. System-verified talent on SkillMatch DNA "
-            f"({verification_badge}, {ccrs_score}% CCRS Composite), recognized for test-driven engineering excellence, cross-functional "
-            f"leadership, and business impact."
-        )
+        custom_summary = str(profile_data.get("summary") or "").strip()
+        if custom_summary and len(custom_summary) > 20:
+            if "SkillMatch DNA" not in custom_summary and "CCRS" not in custom_summary:
+                summary = f"{custom_summary} System-verified talent on SkillMatch DNA ({verification_badge}, {ccrs_score}% CCRS Composite)."
+            else:
+                summary = custom_summary
+        else:
+            summary = (
+                f"Results-driven {role} with verified hands-on expertise in {', '.join(jd_keywords[:3]) or 'scalable architectures'} "
+                f"and robust full-lifecycle cloud systems. Proven track record of architecting high-throughput microservices, optimizing "
+                f"algorithmic latency, and delivering secure, production-grade solutions. System-verified talent on SkillMatch DNA "
+                f"({verification_badge}, {ccrs_score}% CCRS Composite), recognized for test-driven engineering excellence, cross-functional "
+                f"leadership, and business impact."
+            )
 
         # 5. Experience items synthesis
         existing_exp = profile_data.get("experience", [])
@@ -487,5 +494,165 @@ class ATSCheckerService:
                 ]
             }
         }
+
+    def parse_resume_content(self, text: str) -> Dict[str, Any]:
+        """
+        Parses raw resume text or document extraction into a structured CV schema:
+        extracts name, role, email, phone, location, summary, social links,
+        skills, experience list, and education list.
+        """
+        lines = [l.strip() for l in text.split('\n') if l.strip()]
+        if not lines:
+            return {
+                "name": "Candidate Name",
+                "role": "Software Engineer",
+                "email": "",
+                "phone": "",
+                "location": "Open to Remote",
+                "summary": "",
+                "social_profiles": {"github": None, "linkedin": None, "portfolio": None},
+                "skills": [],
+                "experience": [],
+                "education": [],
+                "raw_text": ""
+            }
+
+        # 1. Email extraction
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+        email = email_match.group(0) if email_match else ""
+
+        # 2. Phone extraction
+        phone_match = re.search(r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\b\d{10}\b', text)
+        phone = phone_match.group(0) if phone_match else ""
+
+        # 3. Name extraction: first non-contact, non-header line
+        first_line = lines[0] if lines else "Candidate Name"
+        clean_name = re.sub(r'[^a-zA-Z\s\.]', '', first_line).strip()
+        if not clean_name or len(clean_name) < 2 or '@' in first_line:
+            name = "Candidate Name"
+        elif len(clean_name.split()) > 4:
+            name = " ".join(clean_name.split()[:3])
+        else:
+            name = clean_name
+
+        # 4. Role extraction
+        second_line = lines[1] if len(lines) > 1 else ""
+        if second_line and '@' not in second_line and 'http' not in second_line and len(second_line) < 65 and not re.search(r'\d{3}', second_line):
+            role = re.sub(r'[^a-zA-Z0-9\s/&–-]', '', second_line).strip()
+        else:
+            role = "Software Engineer"
+
+        # 5. Location extraction
+        loc_match = re.search(r'\b([A-Z][a-zA-Z\s]+,\s*[A-Z]{2,3})\b', text)
+        location = loc_match.group(1).strip() if loc_match else "Open to Remote"
+
+        # 6. Social profiles & skills extraction
+        from app.services.parser import parser
+        socials = parser.extract_social_profiles(text)
+        skills = parser.extract_skills(text)
+
+        # 7. Section parsing: Summary, Experience, Education
+        summary_pattern = re.compile(r'^(?:professional\s+)?(?:summary|profile|about\s+me|objective)', re.I)
+        exp_pattern = re.compile(r'^(?:work\s+)?(?:experience|history|employment|professional\s+background)', re.I)
+        edu_pattern = re.compile(r'^(?:education|academic|qualifications|credentials)', re.I)
+        skills_pattern = re.compile(r'^(?:technical\s+)?skills', re.I)
+
+        summary_parts = []
+        exp_lines = []
+        edu_lines = []
+        current_sec = "header"
+
+        for line in lines[2:]:
+            stripped = re.sub(r'^[\#\*\-\s\:\_]+', '', line).strip()
+            if not stripped:
+                continue
+            lower = stripped.lower()
+
+            if summary_pattern.match(lower):
+                current_sec = "summary"
+                continue
+            elif exp_pattern.match(lower):
+                current_sec = "experience"
+                continue
+            elif edu_pattern.match(lower):
+                current_sec = "education"
+                continue
+            elif skills_pattern.match(lower):
+                current_sec = "skills"
+                continue
+
+            if current_sec == "summary":
+                summary_parts.append(line)
+            elif current_sec == "experience":
+                exp_lines.append(line)
+            elif current_sec == "education":
+                edu_lines.append(line)
+
+        summary = " ".join(summary_parts).strip()
+
+        # Parse experience lines into jobs with bullets
+        experience = []
+        current_exp = None
+        for line in exp_lines:
+            is_bullet = line.startswith(('-', '•', '*', '+')) or (len(line) > 2 and line[0].isdigit() and line[1] in '.)')
+            clean_line = line.lstrip('-•*+0123456789.) ').strip()
+            is_header = not is_bullet and (any(d in line for d in ['20', '19', 'Present', 'current']) or ' — ' in line or ' - ' in line or ' at ' in line.lower() or '|' in line)
+            if is_header:
+                if current_exp:
+                    experience.append(current_exp)
+                parts = re.split(r'—| - | at |\|', line)
+                exp_title = parts[0].strip() if len(parts) > 0 else role
+                exp_company = parts[1].strip() if len(parts) > 1 else "Enterprise Tech Lab"
+                exp_dur = parts[-1].strip() if len(parts) > 2 else "2022 - Present"
+                current_exp = {
+                    "title": exp_title,
+                    "company": exp_company,
+                    "duration": exp_dur,
+                    "bullets": []
+                }
+            elif current_exp:
+                if clean_line:
+                    current_exp["bullets"].append(clean_line)
+            elif clean_line:
+                current_exp = {
+                    "title": role,
+                    "company": "Professional Experience",
+                    "duration": "2022 - Present",
+                    "bullets": [clean_line]
+                }
+
+        if current_exp:
+            experience.append(current_exp)
+
+        # Parse education lines
+        education = []
+        for line in edu_lines:
+            clean_line = line.lstrip('-•*+ ').strip()
+            if any(term in line.lower() for term in ['b.s', 'm.s', 'ph.d', 'bachelor', 'master', 'b.tech', 'm.tech', 'degree', 'university', 'college', 'institute', 'school']):
+                parts = re.split(r'—| - |\||,', line)
+                deg = parts[0].strip() if len(parts) > 0 else "B.S. in Computer Science"
+                inst = parts[1].strip() if len(parts) > 1 else "University School of Engineering"
+                yr = parts[-1].strip() if len(parts) > 2 else "2022"
+                education.append({
+                    "degree": deg,
+                    "institution": inst,
+                    "year": yr,
+                    "details": ""
+                })
+
+        return {
+            "name": name,
+            "role": role,
+            "email": email,
+            "phone": phone,
+            "location": location,
+            "summary": summary,
+            "social_profiles": socials,
+            "skills": skills,
+            "experience": experience,
+            "education": education,
+            "raw_text": text
+        }
+
 
 ats_checker_service = ATSCheckerService()

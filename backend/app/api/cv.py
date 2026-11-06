@@ -2,15 +2,50 @@
 CV Builder & ATS Checker Router — SkillMatch DNA v2.1
 Implements Module 4 (FR-06 & FR-07) from prd-v2.md
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
+import os
 import re
 from app.services.ats_checker import ats_checker_service
 from app.services.pdf_export_service import generate_pdf_from_cv
+from app.services.parser import parser
 
 router = APIRouter(prefix="/cv", tags=["CV Builder & ATS Checker v2.1"])
+
+class ParseResumeTextRequest(BaseModel):
+    resume_text: str = Field(..., description="Raw text or markdown of the resume")
+
+@router.post("/parse-resume-file")
+async def parse_resume_file(file: UploadFile = File(...)):
+    """
+    Parses an uploaded resume file (PDF, DOCX, TXT, MD) into structured resume fields
+    (name, email, phone, location, role, social profiles, skills, experience, education, summary)
+    for interactive in-place customization in the CV Builder.
+    """
+    try:
+        content = await file.read()
+        raw_text = parser.extract_text(file_bytes=content, filename=file.filename or "resume.pdf")
+        if not raw_text.strip():
+            raw_text = content.decode("utf-8", errors="ignore")
+        parsed = ats_checker_service.parse_resume_content(raw_text)
+        return parsed
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse resume file: {str(e)}")
+
+@router.post("/parse-resume-text")
+async def parse_resume_text(req: ParseResumeTextRequest):
+    """
+    Parses raw resume text or markdown into structured resume fields
+    for interactive in-place customization in the CV Builder.
+    """
+    try:
+        parsed = ats_checker_service.parse_resume_content(req.resume_text)
+        return parsed
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse resume text: {str(e)}")
+
 
 class GenerateTailoredCVRequest(BaseModel):
     profile_data: Optional[Dict[str, Any]] = Field(default_factory=dict)
