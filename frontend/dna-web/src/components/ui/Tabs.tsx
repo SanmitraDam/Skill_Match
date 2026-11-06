@@ -8,10 +8,7 @@ import {
   Activity,
   Mic,
   Brain,
-  ShieldAlert,
-  ShieldCheck,
   Briefcase,
-  TrendingUp,
   BookOpen,
   Code2,
   LayoutDashboard,
@@ -36,10 +33,6 @@ const TAB_CONFIG: Record<Tab, { label: string; icon: any }> = {
   flashcards: { label: 'PDF Flashcards', icon: BookOpen },
   reminders: { label: 'Study Reminders', icon: Bell },
   sandbox: { label: 'Live Sandbox', icon: Code2 },
-  forensics: { label: 'Forensics & Post-Mortem', icon: ShieldCheck },
-  proctoring: { label: 'AI Proctoring & ZK', icon: ShieldAlert },
-  enterprise_ats: { label: 'Enterprise ATS', icon: Briefcase },
-  talent_exchange: { label: 'Talent Exchange', icon: TrendingUp },
 };
 
 export const Tabs: React.FC = () => {

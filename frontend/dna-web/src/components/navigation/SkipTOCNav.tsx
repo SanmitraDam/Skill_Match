@@ -15,7 +15,6 @@ import {
   Code2,
   Mic,
   Activity,
-  ShieldAlert,
   ChevronDown,
   Fingerprint
 } from 'lucide-react';
@@ -36,8 +35,7 @@ const QUICK_LINKS: QuickLink[] = [
   { tab: 'interview', label: 'Voice AI Room', hotkey: 'Alt + 6', icon: Mic },
   { tab: 'sandbox', label: 'Code Sandbox', hotkey: 'Alt + 7', icon: Code2 },
   { tab: 'quiz', label: 'CAT Quiz', hotkey: 'Alt + 8', icon: Activity },
-  { tab: 'proctoring', label: 'AI Proctoring', hotkey: 'Alt + 9', icon: ShieldAlert },
-  { tab: 'cv_builder', label: 'CV & ATS Builder', hotkey: 'Alt + 0', icon: Compass },
+  { tab: 'cv_builder', label: 'CV & ATS Builder', hotkey: 'Alt + 9', icon: Compass },
 ];
 
 export const SkipTOCNav: React.FC = () => {

@@ -13,10 +13,6 @@ import { VoiceInterview } from './VoiceInterview';
 import { FlashcardStudio } from './FlashcardStudio';
 import { ReminderStudio } from '../workspace/ReminderStudio';
 import { CodeSandboxStudio } from './CodeSandboxStudio';
-import { ForensicDiagnosticsPortal } from './ForensicDiagnosticsPortal';
-import { ProctoringMatrixStudio } from './ProctoringMatrixStudio';
-import EnterpriseWorkforceGraph from '../dashboard/EnterpriseWorkforceGraph';
-import AutonomousTalentExchange from '../exchange/AutonomousTalentExchange';
 import CVBuilder from './CVBuilder';
 import HeroSection from '../hero/HeroSection';
 import { SkipTOCNav } from '../navigation/SkipTOCNav';
@@ -78,10 +74,6 @@ export default function Workspace() {
           {activeTab === 'flashcards' && <FlashcardStudio />}
           {activeTab === 'reminders' && <ReminderStudio />}
           {activeTab === 'sandbox' && <CodeSandboxStudio />}
-          {activeTab === 'forensics' && <ForensicDiagnosticsPortal />}
-          {activeTab === 'proctoring' && <ProctoringMatrixStudio />}
-          {activeTab === 'enterprise_ats' && <EnterpriseWorkforceGraph />}
-          {activeTab === 'talent_exchange' && <AutonomousTalentExchange />}
         </motion.div>
       </AnimatePresence>
     </div>

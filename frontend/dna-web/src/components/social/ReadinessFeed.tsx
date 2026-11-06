@@ -671,10 +671,10 @@ export const ReadinessFeed: React.FC = () => {
             </div>
 
             <button
-              onClick={() => navigateTo('enterprise_ats')}
+              onClick={() => navigateTo('cv_builder')}
               className="w-full py-2 rounded-xl text-xs font-semibold text-[var(--accent-primary)] border border-[var(--glass-border-subtle)] hover:bg-[var(--pill-bg)] transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>View Full ATS Pipeline</span>
+              <span>View JD-Tailored CV & ATS Optimization</span>
               <ArrowUpRight size={13} />
             </button>
           </div>

@@ -41,11 +41,7 @@ export type Tab =
   | 'interview'
   | 'flashcards'
   | 'reminders'
-  | 'sandbox'
-  | 'forensics'
-  | 'proctoring'
-  | 'enterprise_ats'
-  | 'talent_exchange';
+  | 'sandbox';
 
 
 export interface UserProfile {
