@@ -84,27 +84,27 @@ export default function HeroSection({
           1. DEDICATED HERO / LANDING NAVBAR (High-Impact Glassmorphic)
           ───────────────────────────────────────────────────────────── */}
       <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[var(--glass-border-subtle)] bg-[var(--chrome-bg)]/85 backdrop-blur-2xl transition-colors duration-300">
-        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between gap-4">
+        <div className="hero-navbar-inner max-w-7xl mx-auto h-full px-2.5 xs:px-3 phone-sm:px-4 sm:px-6 flex items-center justify-between gap-1.5 xs:gap-2 sm:gap-4">
 
           {/* Brand Logo & Status */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--accent-primary)] to-emerald-400 flex items-center justify-center shadow-lg shadow-[var(--accent-glow)]">
-              <Dna size={20} className="text-slate-950 font-bold" />
+          <div className="flex items-center gap-2 xs:gap-3 shrink-0">
+            <div className="w-8 h-8 xs:w-9 xs:h-9 rounded-xl bg-gradient-to-br from-[var(--accent-primary)] to-emerald-400 flex items-center justify-center shadow-lg shadow-[var(--accent-glow)] shrink-0">
+              <Dna size={18} className="text-slate-950 font-bold" />
             </div>
             <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-base font-extrabold tracking-tight text-[var(--fg-color)]">
+              <div className="flex items-center gap-1.5">
+                <span className="hero-brand-text text-xs xs:text-sm sm:text-base font-extrabold tracking-tight text-[var(--fg-color)]">
                   SkillMatch DNA
                 </span>
               </div>
-              <span className="hidden sm:inline-block text-[10px] font-mono text-[var(--fg-subtle)]">
+              <span className="hero-brand-subtitle hidden sm:inline-block text-[10px] font-mono text-[var(--fg-subtle)]">
                 Career Readiness Platform
               </span>
             </div>
           </div>
 
           {/* Center Navigation Links (Desktop) */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hero-center-nav hidden lg:flex items-center gap-1">
             <button
               onClick={() => scrollToSection('live-demo')}
               className="px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:text-[var(--fg-color)] hover:bg-[var(--glass-bg)] transition-colors cursor-pointer"
@@ -134,7 +134,7 @@ export default function HeroSection({
           </nav>
 
           {/* Right Action Controls: Theme Switcher + Auth Buttons */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 shrink-0">
             {/* Theme Toggle */}
             <ThemeToggle />
 
@@ -143,18 +143,18 @@ export default function HeroSection({
                 {/* Sign In Button */}
                 <button
                   onClick={() => onAuthClick?.('signin')}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-border-subtle)] text-[var(--fg-color)] text-xs font-semibold hover:border-[var(--accent-primary)] transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
+                  className="hero-auth-btn flex items-center gap-1 xs:gap-1.5 px-2 xs:px-2.5 phone-sm:px-3.5 py-1.5 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-border-subtle)] text-[var(--fg-color)] text-[11px] xs:text-xs font-semibold hover:border-[var(--accent-primary)] transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
                 >
-                  <LogIn size={13} className="text-[var(--accent-primary)]" />
+                  <LogIn size={12} className="text-[var(--accent-primary)] shrink-0" />
                   <span>Sign In</span>
                 </button>
 
                 {/* Sign Up Button (High-converting gradient) */}
                 <button
                   onClick={() => onAuthClick?.('signup')}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 text-xs font-extrabold shadow-md shadow-emerald-500/25 hover:brightness-110 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  className="hero-auth-btn flex items-center gap-1 xs:gap-1.5 px-2.5 xs:px-3 phone-sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 text-[11px] xs:text-xs font-extrabold shadow-md shadow-emerald-500/25 hover:brightness-110 hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
-                  <UserPlus size={13} />
+                  <UserPlus size={12} className="shrink-0" />
                   <span>Sign Up</span>
                 </button>
 
@@ -212,7 +212,7 @@ export default function HeroSection({
               initial={{ opacity: 0, y: 25 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-[var(--fg-color)]"
+              className="hero-main-heading text-3xl xs:text-4xl phone-sm:text-4xl phone:text-5xl sm:text-6xl md:text-7xl lg:text-7xl 3xl:text-8xl font-extrabold tracking-tight text-[var(--fg-color)]"
             >
               <span className="block">{`AI-Powered `}</span>
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-secondary)] to-emerald-400">
@@ -225,7 +225,7 @@ export default function HeroSection({
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-              className="text-base sm:text-lg md:text-xl text-[var(--fg-muted)] max-w-3xl mx-auto font-normal leading-relaxed"
+              className="hero-subheading text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-[var(--fg-muted)] max-w-3xl mx-auto font-normal leading-relaxed px-2"
             >
               Replace black-hole job applications with a closed-loop talent intelligence platform.
               Combining 384-dimensional vector skill matching, adaptive CAT testing, real-time Voice AI with verifiable Active Noise Cancellation, and JD-tailored CV synthesis.
@@ -237,42 +237,42 @@ export default function HeroSection({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-wrap items-center justify-center gap-3 pt-2"
+            className="hero-cta-group flex flex-col xs:flex-row flex-wrap items-center justify-center gap-2.5 xs:gap-3 pt-2 w-full max-w-xs xs:max-w-none"
           >
             {/* Primary Sign Up Free Button */}
             <button
               onClick={() => onAuthClick?.('signup')}
-              className="theme-primary-btn px-7 py-3.5 text-sm font-bold shadow-xl shadow-[var(--accent-glow)] flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+              className="hero-cta-btn theme-primary-btn px-6 xs:px-7 py-3 xs:py-3.5 text-xs xs:text-sm font-bold shadow-xl shadow-[var(--accent-glow)] flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95 transition-all w-full xs:w-auto"
             >
-              <UserPlus size={17} />
+              <UserPlus size={16} />
               <span>Sign Up Free</span>
             </button>
 
             {/* Sign In Button */}
             <button
               onClick={() => onAuthClick?.('signin')}
-              className="px-6 py-3.5 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--fg-color)] hover:border-[var(--accent-primary)] text-sm font-bold flex items-center gap-2 backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95"
+              className="hero-cta-btn px-5 xs:px-6 py-3 xs:py-3.5 rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--fg-color)] hover:border-[var(--accent-primary)] text-xs xs:text-sm font-bold flex items-center justify-center gap-2 backdrop-blur-xl shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 w-full xs:w-auto"
             >
-              <LogIn size={16} className="text-[var(--accent-primary)]" />
+              <LogIn size={15} className="text-[var(--accent-primary)]" />
               <span>Sign In</span>
             </button>
 
             {/* Scroll down to Live Demo */}
             <button
               onClick={() => scrollToSection('live-demo')}
-              className="px-6 py-3.5 rounded-xl border border-[var(--glass-border-subtle)] bg-[var(--bg-subtle)] text-[var(--fg-color)] hover:border-[var(--glass-border)] text-sm font-bold flex items-center gap-2 backdrop-blur-xl transition-all cursor-pointer hover:scale-105 active:scale-95"
+              className="hero-cta-btn px-5 xs:px-6 py-3 xs:py-3.5 rounded-xl border border-[var(--glass-border-subtle)] bg-[var(--bg-subtle)] text-[var(--fg-color)] hover:border-[var(--glass-border)] text-xs xs:text-sm font-bold flex items-center justify-center gap-2 backdrop-blur-xl transition-all cursor-pointer hover:scale-105 active:scale-95 w-full xs:w-auto"
             >
-              <Sparkles size={16} className="text-amber-400" />
+              <Sparkles size={15} className="text-amber-400" />
               <span>Try Live Demo</span>
             </button>
 
             {/* Direct Platform Workspace Entrance */}
             <button
               onClick={() => navigateTo('overview')}
-              className="px-5 py-3.5 rounded-xl border border-dashed border-[var(--glass-border)] text-[var(--fg-muted)] hover:text-[var(--fg-color)] hover:border-[var(--accent-primary)] text-sm font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+              className="hero-cta-btn px-4 xs:px-5 py-3 xs:py-3.5 rounded-xl border border-dashed border-[var(--glass-border)] text-[var(--fg-muted)] hover:text-[var(--fg-color)] hover:border-[var(--accent-primary)] text-xs xs:text-sm font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer w-full xs:w-auto"
             >
               <span>Explore Platform</span>
-              <ArrowRight size={15} />
+              <ArrowRight size={14} />
             </button>
           </motion.div>
 
@@ -363,13 +363,13 @@ export default function HeroSection({
                   rows={3}
                   value={demoInputJD}
                   onChange={(e) => setDemoInputJD(e.target.value)}
-                  className="w-full p-3.5 rounded-xl bg-[var(--bg-subtle)] border border-[var(--glass-border-subtle)] text-xs text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-primary)] font-mono leading-relaxed"
+                  className="w-full p-3.5 rounded-xl bg-[var(--bg-subtle)] border border-[var(--glass-border-subtle)] text-xs text-[var(--fg-color)] focus:outline-none focus:border-[var(--accent-primary)] font-mono leading-relaxed pb-12 sm:pb-3.5"
                   placeholder="Paste any job description to run an instant skill match..."
                 />
                 <button
                   onClick={handleRunDemoMatch}
                   disabled={isMatching}
-                  className="absolute right-2.5 bottom-2.5 theme-primary-btn px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
+                  className="mt-2 sm:mt-0 sm:absolute sm:right-2.5 sm:bottom-2.5 w-full sm:w-auto theme-primary-btn px-3.5 py-1.5 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50"
                 >
                   {isMatching ? <RefreshCw size={12} className="animate-spin" /> : <Zap size={12} />}
                   Run Live Vector Match

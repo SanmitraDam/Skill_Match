@@ -337,7 +337,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94, y: 15 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="relative w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 overflow-hidden rounded-3xl border border-emerald-500/25 shadow-[0_0_50px_rgba(16,185,129,0.15)] bg-slate-900/90 text-slate-100 backdrop-blur-2xl z-10 my-auto"
+        className="auth-modal-dialog relative w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 overflow-hidden rounded-3xl border border-emerald-500/25 shadow-[0_0_50px_rgba(16,185,129,0.15)] bg-slate-900/90 text-slate-100 backdrop-blur-2xl z-10 my-auto"
       >
         {/* Biometric Laser Sweep Animation across modal during authentication */}
         {isAuthenticating && (
@@ -390,7 +390,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
         </div>
 
         {/* Right Column: Dynamic Form Area */}
-        <div className="col-span-1 md:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-gradient-to-b from-slate-900/90 to-slate-950/95">
+        <div className="col-span-1 md:col-span-7 p-3.5 xs:p-4 phone-sm:p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-gradient-to-b from-slate-900/90 to-slate-950/95">
           {/* Tab Selector: [ Sign In ] | [ Create Account ] */}
           {step === 'form' && (
             <div className="flex items-center p-1 rounded-2xl bg-white/5 border border-white/10 mb-6 max-w-sm">
@@ -823,7 +823,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
               </div>
 
               {/* 6-Digit PIN Boxes */}
-              <div className="flex justify-between gap-2 sm:gap-3 py-2">
+              <div className="otp-pin-container flex justify-between gap-1 xs:gap-1.5 phone-sm:gap-2 sm:gap-3 py-2">
                 {otpDigits.map((digit, idx) => (
                   <input
                     key={idx}
@@ -836,7 +836,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signin' }: A
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    className="w-11 h-13 sm:w-12 sm:h-14 rounded-xl bg-white/5 border border-white/15 text-center text-xl font-mono font-bold text-emerald-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40 transition-all shadow-inner"
+                    className="otp-pin-box w-8.5 h-11 xs:w-9 xs:h-11 phone-sm:w-10 phone-sm:h-12 phone:w-11 phone:h-13 sm:w-12 sm:h-14 rounded-xl bg-white/5 border border-white/15 text-center text-lg phone-sm:text-xl font-mono font-bold text-emerald-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40 transition-all shadow-inner"
                     autoFocus={idx === 0}
                   />
                 ))}

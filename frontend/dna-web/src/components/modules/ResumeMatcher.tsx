@@ -268,7 +268,7 @@ export function ResumeMatcher() {
             {/* Taxonomy Breakdown */}
             {matchReport.taxonomy && (
               <GlassCard title="Skill Taxonomy Distribution" className="p-4">
-                <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="grid grid-cols-1 phone-sm:grid-cols-3 gap-2 text-xs">
                   <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
                     <span className="text-cyan-600 dark:text-cyan-400 font-bold block mb-1">Hard Technical</span>
                     <span className="text-[var(--fg-color)] font-mono">{matchReport.taxonomy.hard_technical.length} skills</span>

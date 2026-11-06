@@ -1076,7 +1076,7 @@ export function VoiceInterview() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
       {/* LEFT COLUMN: 3D Audio Visualizer & Real-Time Controls */}
-      <div className="relative h-full glass-panel overflow-hidden flex flex-col min-h-[580px]">
+      <div className="relative h-full glass-panel overflow-hidden flex flex-col min-h-[380px] xs:min-h-[420px] phone-sm:min-h-[460px] sm:min-h-[520px] lg:min-h-[580px]">
         {/* Top HUD: FSM State & Latency Metrics */}
         <div className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
           <div className="flex flex-wrap items-center gap-2">

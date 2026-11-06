@@ -8,6 +8,22 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '320px',           /* 320px   → small phone */
+        'phone-sm': '375px',     /* 375px   → iPhone-sized */
+        'phone': '390px',        /* 390px   → modern phone */
+        'phone-lg': '430px',     /* 430px   → large phone */
+        'sm': '640px',           /* standard small */
+        'md': '768px',           /* 768px   → tablet */
+        'tablet': '768px',       /* alias for tablet */
+        'lg': '1024px',          /* 1024px  → tablet/laptop */
+        'laptop': '1024px',      /* alias for tablet/laptop */
+        'xl': '1280px',          /* 1280px  → laptop */
+        '2xl': '1440px',         /* 1440px  → desktop */
+        'desktop': '1440px',     /* alias for desktop */
+        '3xl': '1920px',         /* 1920px  → large desktop */
+        'desktop-lg': '1920px',  /* alias for large desktop */
+      },
       colors: {
         /* ── Brand tokens used across 60+ module components ── */
         'cyber-violet': '#8b5cf6',

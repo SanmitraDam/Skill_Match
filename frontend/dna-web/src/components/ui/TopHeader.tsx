@@ -56,7 +56,7 @@ export default function TopHeader({ onAuthClick }: { onAuthClick: (mode?: 'signi
 
   return (
     <header
-      className="fixed top-0 right-0 z-40 h-14 flex items-center px-3 sm:px-5 gap-2 sm:gap-3 border-b border-[var(--glass-border-subtle)] bg-[var(--chrome-bg)] text-[var(--fg-color)] backdrop-blur-xl transition-[left] duration-300 ease-out"
+      className="fixed top-0 right-0 z-40 h-14 flex items-center px-2 xs:px-3 sm:px-5 gap-1.5 xs:gap-2 sm:gap-3 border-b border-[var(--glass-border-subtle)] bg-[var(--chrome-bg)] text-[var(--fg-color)] backdrop-blur-xl transition-[left] duration-300 ease-out"
       style={{ left }}
     >
       {/* Mobile nav trigger */}
@@ -149,16 +149,16 @@ export default function TopHeader({ onAuthClick }: { onAuthClick: (mode?: 'signi
 
       {/* User Authentication Status */}
       {!isAuthenticated ? (
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 xs:gap-2 shrink-0">
           <button
             onClick={() => onAuthClick('signin')}
-            className="px-3 py-1.5 rounded-lg bg-[var(--pill-bg)] border border-[var(--glass-border)] text-[var(--pill-text)] text-xs font-semibold hover:bg-[var(--glass-border)] transition-all cursor-pointer"
+            className="px-2 xs:px-2.5 phone-sm:px-3 py-1 xs:py-1.5 rounded-lg bg-[var(--pill-bg)] border border-[var(--glass-border)] text-[var(--pill-text)] text-[11px] xs:text-xs font-semibold hover:bg-[var(--glass-border)] transition-all cursor-pointer"
           >
             Sign In
           </button>
           <button
             onClick={() => onAuthClick('signup')}
-            className="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-xs font-bold shadow-sm shadow-emerald-500/20 hover:brightness-110 transition-all cursor-pointer"
+            className="hidden phone-sm:inline-flex px-2.5 phone-sm:px-3 py-1 xs:py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-[11px] xs:text-xs font-bold shadow-sm shadow-emerald-500/20 hover:brightness-110 transition-all cursor-pointer"
           >
             Sign Up
           </button>

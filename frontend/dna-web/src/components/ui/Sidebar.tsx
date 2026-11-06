@@ -288,7 +288,7 @@ export default function Sidebar() {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ type: 'spring', stiffness: 340, damping: 34 }}
-            className="fixed left-0 top-0 bottom-0 z-50 w-[280px] flex flex-col bg-[var(--chrome-bg)] backdrop-blur-2xl border-r border-[var(--glass-border-subtle)] overflow-hidden lg:hidden shadow-2xl"
+            className="fixed left-0 top-0 bottom-0 z-50 w-[min(280px,calc(100vw-2.5rem))] flex flex-col bg-[var(--chrome-bg)] backdrop-blur-2xl border-r border-[var(--glass-border-subtle)] overflow-hidden lg:hidden shadow-2xl"
           >
             <SidebarBody collapsed={false} onToggle={() => setMobileNavOpen(false)} variant="mobile" />
           </motion.aside>

@@ -9,6 +9,7 @@
 ::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.4); }
 
 @import '../styles/theme.css';
+@import '../styles/responsive.css';
 
 :root {
   --font-sans: 'Inter', system-ui, sans-serif;
