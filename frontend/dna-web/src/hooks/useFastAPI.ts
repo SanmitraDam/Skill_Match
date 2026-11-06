@@ -219,11 +219,19 @@ export function useGenerateTailoredCV() {
       job_description: string;
       target_role?: string;
     }) => {
-      const res = await fetch(`${API_BASE}/cv/generate-tailored`, {
+      // Robust multi-path dispatch: try /api/v1/cv/generate-tailored first, then fallback to /cv/generate-tailored
+      let res = await fetch(`${API_BASE}/api/v1/cv/generate-tailored`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        res = await fetch(`${API_BASE}/cv/generate-tailored`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: 'CV generation failed' }));
         throw new Error(err.detail || 'CV generation failed');
@@ -239,11 +247,18 @@ export function useATSCheck() {
       cv_text: string;
       job_description: string;
     }) => {
-      const res = await fetch(`${API_BASE}/cv/ats-check`, {
+      let res = await fetch(`${API_BASE}/api/v1/cv/ats-check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        res = await fetch(`${API_BASE}/cv/ats-check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: 'ATS check failed' }));
         throw new Error(err.detail || 'ATS check failed');

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText, Sparkles, CheckCircle2, AlertTriangle, Download, Copy,
@@ -71,6 +71,19 @@ export function CVBuilder() {
   const [activeViewTab, setActiveViewTab] = useState<'preview' | 'markdown' | 'ats_report'>('preview');
   const [generatedCV, setGeneratedCV] = useState<TailoredCVResponse | null>(null);
   const [copied, setCopied] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
+
+  // Sync candidate profile with logged in user
+  useEffect(() => {
+    if (user?.name || user?.email) {
+      setCandidateProfile(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        role: user.role === 'recruiter' ? 'Recruiter' : prev.role,
+      }));
+    }
+  }, [user]);
 
   // API mutations
   const generateMut = useGenerateTailoredCV();
@@ -82,6 +95,7 @@ export function CVBuilder() {
   };
 
   const handleGenerate = async () => {
+    setGenError(null);
     try {
       const res = await generateMut.mutateAsync({
         profile_data: candidateProfile,
@@ -104,8 +118,9 @@ export function CVBuilder() {
           console.warn("Proactive ATS check failed:", atsErr);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("CV generation failed:", err);
+      setGenError(err?.message || "Failed to generate tailored CV. Please retry.");
     }
   };
 
@@ -181,6 +196,22 @@ export function CVBuilder() {
           </button>
         </div>
       </div>
+
+      {/* ── Error Banner ── */}
+      {genError && (
+        <div className="p-4 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={16} className="text-amber-400 shrink-0" />
+            <span className="font-mono">{genError}</span>
+          </div>
+          <button
+            onClick={() => setGenError(null)}
+            className="text-amber-300/60 hover:text-amber-300 font-mono text-xs cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* ── 2-Column Grid: Inputs & Presets (Left) vs ATS Gauge & Preview (Right) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

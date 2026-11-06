@@ -92,6 +92,330 @@
       }
     },
     {
+      "source": "/cv/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/ats/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/proctor/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/agents/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/amm/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/arbitration/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/bci/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/collaborative/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/compliance/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/cortical/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/cosmic-telepathy/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/cross-chain/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/cross-quantum/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/dat/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/enterprise/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/executive/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/federation/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/governance/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/graphrag/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/grid/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/guild/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/hd-pqnn/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/hiring/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/hyperbolic/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/logic/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/mag/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/mobility/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/neuromorphic/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/photonic/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/plonky3-rollup/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/pqc/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/qaoa/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/quantum/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/recruiter/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/resiliency/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/rl-adaptive/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/rlaf/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/rlahf/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/royalty/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/security/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/sfu/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/squad/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/subcortical/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/subvocal/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/swarm/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/synaptic/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/topological/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/tq-qaoa/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/utdao/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/utdao-v2/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/zk-did/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/zk-mpc/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/zk-stark/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/zkp/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
       "source": "/docs",
       "destination": {
         "service": "backend"
