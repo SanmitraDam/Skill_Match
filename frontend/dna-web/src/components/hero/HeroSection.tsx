@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeroScene from '@/components/3d/HeroScene';
-import StatusPill from './StatusPill';
 import MetricPods from './MetricPods';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import { useSpatialStore } from '@/lib/store';
@@ -203,9 +202,6 @@ export default function HeroSection({
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-gradient-to-br from-[var(--accent-glow-strong)] to-transparent rounded-full blur-3xl pointer-events-none -z-10 opacity-70" />
 
         <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center space-y-8">
-          {/* Status Pill */}
-          <StatusPill />
-
           {/* Kinetic Typography Title */}
           <div className="max-w-4xl space-y-4">
             <motion.h1
