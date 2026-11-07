@@ -3305,6 +3305,21 @@ export function usePlonky3Batches() {
    VERSION 15.0 — MULTI-STAGE INTERVIEW READINESS & FLASHCARD ENGINE HOOKS
    ========================================================================= */
 
+export function useUploadPDFFlashcards() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${API_BASE}/flashcards/upload-pdf`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Upload PDF flashcard generation failed');
+      return res.json();
+    },
+  });
+}
+
 export function useGenerateFlashcards() {
   return useMutation({
     mutationFn: async (payload: {

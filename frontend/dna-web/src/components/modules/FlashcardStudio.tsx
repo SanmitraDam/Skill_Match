@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen,
@@ -22,16 +22,20 @@ import {
   FileText,
   Upload,
   Activity,
-  TrendingDown
+  TrendingDown,
+  Loader2,
+  Check
 } from 'lucide-react';
 import {
   useGenerateFlashcards,
   useReviewFlashcard,
-  useCramFlashcards
+  useCramFlashcards,
+  useUploadPDFFlashcards
 } from '@/hooks/useFastAPI';
 import {
   SAMPLE_TECHNICAL_CHAPTERS,
   PDFSection,
+  GeneratedCard,
   parseSectionsFromText
 } from '@/lib/flashcards/PDFFlashcardGenerator';
 import { MemoryEngine } from '@/lib/memory/MemoryEngine';
@@ -41,7 +45,9 @@ export function FlashcardStudio() {
   const [viewMode, setViewMode] = useState<'pdf_sectional' | 'sm2_cram'>('pdf_sectional');
   const [pdfSections, setPdfSections] = useState<PDFSection[]>(SAMPLE_TECHNICAL_CHAPTERS);
   const [uploadedDocName, setUploadedDocName] = useState<string>('Distributed_AI_Systems_Blueprint.pdf');
-  const [activeTopic, setActiveTopic] = useState<string>('All Topics');
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [hesitationTimer, setHesitationTimer] = useState<number>(0);
@@ -51,60 +57,54 @@ export function FlashcardStudio() {
 
   const generateMutation = useGenerateFlashcards();
   const reviewMutation = useReviewFlashcard();
+  const uploadMutation = useUploadPDFFlashcards();
   const { data: cramData, refetch: refetchCram } = useCramFlashcards(undefined, 15);
 
-  const [deck, setDeck] = useState<any>({
-    deck_id: 'deck_initial',
-    target_job_title: 'Senior Distributed AI Systems Engineer',
-    cards: [
-      {
-        card_id: 'card_demo_001',
-        topic: 'System Design & Distributed Architecture',
-        sub_skill: 'Distributed Caching (Redis)',
-        question: 'Explain write-through vs write-back cache invalidation strategies in horizontally scaled Redis clusters. What happens during split-brain scenarios?',
-        answer: '1. Write-Through: Synchronously updates database and cache before returning. Strong consistency, higher write latency.\n2. Write-Back (Write-Behind): Writes to cache first and queues asynchronous background writes to DB. Lower write latency, risk of data loss on crash.\n3. Split-Brain: Prevent via quorum writes (e.g. Raft consensus with min-replicas-to-write) and sentinel failover barriers.',
-        code_snippet: 'async def write_through_update(key: str, val: dict):\n    await db.execute("UPDATE items SET data = :v WHERE id = :k", {"v": val, "k": key})\n    await redis.set(f"cache:{key}", json.dumps(val), ex=3600)',
-        difficulty_level: 4,
-        explanation_diagram_svg: '<svg width="240" height="70" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="35" x="10" y="15" fill="#3b82f6" rx="6"/><text x="25" y="38" fill="#fff" font-size="11">App</text><path d="M 70 32 L 100 32" stroke="#94a3b8" stroke-width="2"/><rect width="60" height="35" x="100" y="15" fill="#10b981" rx="6"/><text x="110" y="38" fill="#fff" font-size="11">Cache</text><path d="M 160 32 L 180 32" stroke="#94a3b8" stroke-width="2"/><rect width="50" height="35" x="180" y="15" fill="#6366f1" rx="6"/><text x="195" y="38" fill="#fff" font-size="11">DB</text></svg>',
+  // Sync initial deck from SAMPLE_TECHNICAL_CHAPTERS
+  const [deck, setDeck] = useState<any>(() => {
+    const allCards = SAMPLE_TECHNICAL_CHAPTERS.flatMap((s) => s.cards);
+    return {
+      deck_id: 'deck_initial',
+      target_job_title: 'Senior Distributed AI Systems Engineer',
+      cards: allCards.map((c) => ({
+        card_id: c.card_id,
+        topic: c.topic,
+        sub_skill: c.sub_skill,
+        question: c.question,
+        answer: c.answer,
+        code_snippet: c.code_snippet,
+        difficulty_level: c.difficulty_level,
         ease_factor: 2.5,
-        interval_days: 1
-      },
-      {
-        card_id: 'card_demo_002',
-        topic: 'Specialized Stack Tools',
-        sub_skill: 'vLLM & PagedAttention',
-        question: 'How does vLLM’s PagedAttention algorithm eliminate memory fragmentation during high-concurrency LLM inference batching?',
-        answer: '1. Traditional LLMs allocate contiguous memory for KV-cache, causing up to 80% internal/external fragmentation.\n2. PagedAttention borrows virtual memory paging principles from operating systems: allocates fixed-size physical memory blocks on demand.\n3. Enables non-contiguous KV-cache storage and sharing across parallel generation sequences (beam search / speculative decoding).',
-        code_snippet: 'from vllm import LLM, SamplingParams\n\nsampling_params = SamplingParams(temperature=0.7, top_p=0.95, max_tokens=256)\nllm = LLM(model="meta-llama/Llama-3-8B-Instruct", gpu_memory_utilization=0.90)',
-        difficulty_level: 5,
-        ease_factor: 2.4,
-        interval_days: 1
-      },
-      {
-        card_id: 'card_demo_003',
-        topic: 'Algorithmic Data Structures & Complexity',
-        sub_skill: 'Dynamic Programming',
-        question: 'How do you space-optimize a 2D dynamic programming grid from O(M * N) space to O(min(M, N))?',
-        answer: '1. Observe that DP[i][j] typically only depends on values from the current row DP[i] and immediately preceding row DP[i-1].\n2. Maintain two 1D rolling array buffers (or a single 1D buffer updated in-place from right-to-left).\n3. Space drops from O(M*N) to O(N), yielding major cache locality improvements.',
-        code_snippet: 'def min_path_sum(grid):\n    m, n = len(grid), len(grid[0])\n    dp = [float("inf")] * (n + 1)\n    dp[1] = 0\n    for row in grid:\n        for j in range(1, n + 1):\n            dp[j] = min(dp[j], dp[j - 1]) + row[j - 1]\n    return dp[n]',
-        difficulty_level: 4,
-        ease_factor: 2.5,
-        interval_days: 1
-      },
-      {
-        card_id: 'card_demo_004',
-        topic: 'Behavioral Leadership & STAR Scenarios',
-        sub_skill: 'Crisis Architecture & STAR',
-        question: 'A critical production microservice crashed during peak traffic due to an unhandled downstream timeout. Walk through your response using STAR.',
-        answer: 'Situation: Payment gateway timed out, causing order queue pileups.\nTask: Restore service under 5 minutes and prevent customer charge duplication.\nAction: Executed circuit breaker fallback, shed non-essential telemetry load, and added exponential backoff jitter.\nResult: Restored uptime in 3.5 minutes; instituted automated chaos drills.',
-        difficulty_level: 3,
-        ease_factor: 2.5,
-        interval_days: 1
-      }
-    ]
+        interval_days: Math.max(1, Math.round(c.stability_factor / 24)),
+        repetition_count: c.retention_score >= 0.8 ? 1 : 0
+      }))
+    };
   });
 
-  // Hesitation timer
+  // Keep deck in sync when pdfSections change
+  const syncDeckFromSections = (sections: PDFSection[]) => {
+    const allCards = sections.flatMap((s) => s.cards);
+    setDeck({
+      deck_id: `deck_${Date.now()}`,
+      target_job_title: 'Computer Science & Engineering',
+      cards: allCards.map((c) => ({
+        card_id: c.card_id,
+        topic: c.topic,
+        sub_skill: c.sub_skill,
+        question: c.question,
+        answer: c.answer,
+        code_snippet: c.code_snippet,
+        difficulty_level: c.difficulty_level,
+        ease_factor: 2.5,
+        interval_days: Math.max(1, Math.round(c.stability_factor / 24)),
+        repetition_count: c.retention_score >= 0.8 ? 1 : 0
+      }))
+    });
+    setCurrentIndex(0);
+    setIsFlipped(false);
+  };
+
+  // Hesitation timer for SM-2 Cram mode
   useEffect(() => {
     let interval: any = null;
     if (timerRunning && !isFlipped && viewMode === 'sm2_cram') {
@@ -115,67 +115,139 @@ export function FlashcardStudio() {
     return () => clearInterval(interval);
   }, [timerRunning, isFlipped, viewMode]);
 
+  const activeCramCards = useMemo(() => {
+    if (!isCramMode) return deck.cards || [];
+    return (deck.cards || []).filter((c: any) => c.difficulty_level >= 4 || (c.interval_days || 1) <= 2);
+  }, [deck.cards, isCramMode]);
+
+  const currentCramCard = activeCramCards[currentIndex] || activeCramCards[0];
+
   const handleReview = async (grade: number) => {
     setTimerRunning(false);
-    const card = deck.cards[currentIndex];
+    const card = currentCramCard;
     if (!card) return;
 
     try {
-      // SM-2 Spaced Repetition Calculation (Client-Side Prediction)
-      // Quality Grade: 1 (Forgot) to 5 (Easy)
       const { newInterval, newEase } = MemoryEngine.calculateSM2(
         card.interval_days,
         card.ease_factor,
         grade
       );
 
-      const res = await reviewMutation.mutateAsync({
-        card_id: card.card_id,
-        quality_rating: grade,
-        hesitation_seconds: hesitationTimer,
-        current_interval: card.interval_days,
-        current_ef: card.ease_factor,
-        repetition_count: card.repetition_count || 0
-      });
+      // Attempt backend review mutation if available
+      try {
+        const res = await reviewMutation.mutateAsync({
+          card_id: card.card_id,
+          quality_rating: grade,
+          hesitation_seconds: hesitationTimer,
+          current_interval: card.interval_days,
+          current_ef: card.ease_factor,
+          repetition_count: card.repetition_count || 0
+        });
+        setReviewFeedback(res);
+      } catch (e) {
+        // Local calculation fallback
+        setReviewFeedback({
+          card_id: card.card_id,
+          effective_quality_rating: grade,
+          new_ease_factor: newEase,
+          new_interval_days: newInterval,
+          next_review_due: `in ${newInterval} day(s)`
+        });
+      }
 
-      setReviewFeedback(res);
+      // Update card in local deck
+      setDeck((prev: any) => ({
+        ...prev,
+        cards: prev.cards.map((c: any) => {
+          if (c.card_id === card.card_id) {
+            return {
+              ...c,
+              ease_factor: newEase,
+              interval_days: newInterval,
+              repetition_count: (c.repetition_count || 0) + 1
+            };
+          }
+          return c;
+        })
+      }));
 
       setTimeout(() => {
         setReviewFeedback(null);
-        setCurrentIndex((prev) => (prev + 1) % deck.cards.length);
+        setCurrentIndex((prev) => (prev + 1) % activeCramCards.length);
         setIsFlipped(false);
         setHesitationTimer(0);
         setTimerRunning(true);
-      }, 1200);
+      }, 1000);
     } catch (err) {
       console.error(err);
-      setCurrentIndex((prev) => (prev + 1) % deck.cards.length);
+      setCurrentIndex((prev) => (prev + 1) % activeCramCards.length);
       setIsFlipped(false);
       setHesitationTimer(0);
       setTimerRunning(true);
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadedDocName(file.name);
-    // Simulate multi-page heading parsing
+    setIsUploading(true);
+    setUploadMessage('Ingesting PDF and synthesizing structured chapter flashcards...');
+
+    try {
+      // 1. Try backend PDF extraction endpoint with PyMuPDF
+      const res = await uploadMutation.mutateAsync(file);
+      if (res && res.sections && res.sections.length > 0) {
+        setPdfSections(res.sections);
+        syncDeckFromSections(res.sections);
+        setUploadMessage(`Successfully segmented ${res.sections_count} sections and synthesized ${res.total_cards} flashcards!`);
+        setTimeout(() => setUploadMessage(null), 3500);
+        setIsUploading(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend upload PDF parsing failed or offline, using resilient client synthesis:', err);
+    }
+
+    // 2. Client-side fallback: reads text or parses filename/structure
     const reader = new FileReader();
     reader.onload = (event) => {
-      const text = event.target?.result as string || '';
+      const text = (event.target?.result as string) || '';
       const parsed = parseSectionsFromText(text, file.name);
       if (parsed && parsed.length > 0) {
         setPdfSections(parsed);
+        syncDeckFromSections(parsed);
+        const cardTotal = parsed.reduce((acc, s) => acc + s.cards.length, 0);
+        setUploadMessage(`Successfully segmented ${parsed.length} sections and synthesized ${cardTotal} flashcards!`);
+        setTimeout(() => setUploadMessage(null), 3500);
       }
+      setIsUploading(false);
     };
+    reader.onerror = () => {
+      const parsed = parseSectionsFromText('', file.name);
+      setPdfSections(parsed);
+      syncDeckFromSections(parsed);
+      setIsUploading(false);
+    };
+
     reader.readAsText(file);
   };
 
-  const curveData = MemoryEngine.generateCurveData(36);
   const totalCardsCount = pdfSections.reduce((acc, s) => acc + s.cards.length, 0);
-  const decayedCardsCount = pdfSections.flatMap(s => s.cards).filter(c => MemoryEngine.assessCard(c).is_decayed).length;
+  const decayedCardsCount = pdfSections
+    .flatMap((s) => s.cards)
+    .filter((c) => MemoryEngine.assessCard(c).is_decayed).length;
+
+  const avgStability = useMemo(() => {
+    const all = pdfSections.flatMap((s) => s.cards);
+    if (all.length === 0) return 36;
+    const sum = all.reduce((acc, c) => acc + (c.stability_factor || 24), 0);
+    return Math.round(sum / all.length);
+  }, [pdfSections]);
+
+  const curveData = useMemo(() => MemoryEngine.generateCurveData(avgStability), [avgStability]);
 
   return (
     <div className="space-y-6">
@@ -241,16 +313,36 @@ export function FlashcardStudio() {
                 </div>
                 <div className="flex items-center gap-2 text-sm font-medium text-[var(--fg-color)] truncate mb-1">
                   <FileText size={16} className="text-[var(--accent-primary)] shrink-0" />
-                  <span className="truncate">{uploadedDocName}</span>
+                  <span className="truncate font-mono text-xs">{uploadedDocName}</span>
                 </div>
                 <p className="text-xs text-[var(--fg-muted)]">
                   {pdfSections.length} sections segmented • {totalCardsCount} cards synthesized
                 </p>
               </div>
 
-              <label className="mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-[var(--accent-primary)]/40 hover:border-[var(--accent-primary)] bg-[var(--pill-bg)] text-xs font-semibold text-[var(--accent-primary)] cursor-pointer transition-colors">
-                <Upload size={13} /> Upload New Technical PDF
-                <input type="file" accept=".pdf,.txt,.md" onChange={handleFileUpload} className="hidden" />
+              {uploadMessage && (
+                <div className="my-2 p-2 rounded-xl bg-[var(--pill-bg)] border border-[var(--accent-primary)]/30 text-[11px] font-mono text-[var(--accent-primary)] flex items-center gap-1.5">
+                  <Check size={12} /> {uploadMessage}
+                </div>
+              )}
+
+              <label className="mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-[var(--accent-primary)]/40 hover:border-[var(--accent-primary)] bg-[var(--pill-bg)] text-xs font-semibold text-[var(--accent-primary)] cursor-pointer transition-colors disabled:opacity-50">
+                {isUploading ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" /> Synthesizing Cards...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={13} /> Upload New Technical PDF
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept=".pdf,.txt,.md"
+                  disabled={isUploading}
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
               </label>
             </div>
 
@@ -340,9 +432,16 @@ export function FlashcardStudio() {
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-[var(--fg-color)]">SM-2 Spaced Repetition Queue</span>
               <span className="text-xs text-[var(--fg-muted)]">• Hesitation Timer Active</span>
+              <span className="text-xs font-mono text-[var(--accent-primary)]">
+                ({activeCramCards.length} cards in queue)
+              </span>
             </div>
             <button
-              onClick={() => setIsCramMode(!isCramMode)}
+              onClick={() => {
+                setIsCramMode(!isCramMode);
+                setCurrentIndex(0);
+                setIsFlipped(false);
+              }}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition ${
                 isCramMode
                   ? 'bg-rose-500 text-white border-rose-400'
@@ -353,51 +452,110 @@ export function FlashcardStudio() {
             </button>
           </div>
 
-          {deck.cards[currentIndex] && (
+          {currentCramCard ? (
             <div className="max-w-2xl mx-auto space-y-4">
+              {/* Feedback Alert */}
+              <AnimatePresence>
+                {reviewFeedback && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-mono text-center flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 size={13} /> Recall verified! Next review: {reviewFeedback.next_review_due || 'in 1 day'}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Card Container */}
               <div
                 onClick={() => setIsFlipped(!isFlipped)}
-                className="cursor-pointer min-h-[280px] rounded-2xl theme-card p-6 md:p-8 flex flex-col justify-between select-none"
+                className="cursor-pointer min-h-[300px] rounded-2xl theme-card p-6 md:p-8 flex flex-col justify-between select-none hover:border-[var(--accent-primary)]/50 transition-all"
               >
                 <div>
                   <div className="flex items-center justify-between text-xs text-[var(--fg-subtle)] mb-3">
-                    <span className="text-[var(--accent-primary)] font-mono">{deck.cards[currentIndex].sub_skill}</span>
+                    <span className="text-[var(--accent-primary)] font-mono">{currentCramCard.sub_skill || currentCramCard.topic}</span>
                     <span className="flex items-center gap-1 font-mono">
                       <Clock size={11} /> Hesitation: {hesitationTimer.toFixed(1)}s
                     </span>
                   </div>
                   <h3 className="text-lg font-medium text-[var(--fg-color)]">
-                    {deck.cards[currentIndex].question}
+                    {currentCramCard.question}
                   </h3>
                   {isFlipped && (
                     <div className="mt-4 pt-4 border-t border-[var(--glass-border-subtle)] text-sm text-[var(--fg-color)] leading-relaxed whitespace-pre-line">
-                      {deck.cards[currentIndex].answer}
+                      {currentCramCard.answer}
+                      {currentCramCard.code_snippet && (
+                        <div className="mt-3 p-3 rounded-xl bg-black/70 border border-white/10 text-emerald-300 font-mono text-xs overflow-x-auto">
+                          <pre>{currentCramCard.code_snippet}</pre>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
 
-                <div className="text-[11px] font-mono text-[var(--fg-subtle)] flex items-center justify-between">
-                  <span>Card {currentIndex + 1} of {deck.cards.length}</span>
-                  <span className="text-[var(--accent-primary)]">Click card to reveal answer</span>
+                <div className="text-[11px] font-mono text-[var(--fg-subtle)] flex items-center justify-between pt-4 border-t border-[var(--glass-border-subtle)]">
+                  <span>Card {currentIndex + 1} of {activeCramCards.length}</span>
+                  <span className="text-[var(--accent-primary)]">
+                    {isFlipped ? 'Click card to see Question' : 'Click card to reveal answer'}
+                  </span>
                 </div>
               </div>
 
+              {/* SM-2 Rating Buttons when flipped */}
               {isFlipped && (
                 <div className="grid grid-cols-4 gap-2">
-                  <button onClick={() => handleReview(1)} className="p-2.5 rounded-xl text-xs font-semibold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20">
+                  <button onClick={() => handleReview(1)} className="p-2.5 rounded-xl text-xs font-semibold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all">
                     Forgot (1)
                   </button>
-                  <button onClick={() => handleReview(3)} className="p-2.5 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20">
+                  <button onClick={() => handleReview(3)} className="p-2.5 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20 transition-all">
                     Hard (3)
                   </button>
-                  <button onClick={() => handleReview(4)} className="p-2.5 rounded-xl text-xs font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500/20">
+                  <button onClick={() => handleReview(4)} className="p-2.5 rounded-xl text-xs font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500/20 transition-all">
                     Good (4)
                   </button>
-                  <button onClick={() => handleReview(5)} className="p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20">
+                  <button onClick={() => handleReview(5)} className="p-2.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">
                     Easy (5)
                   </button>
                 </div>
               )}
+
+              {/* Navigation Bar */}
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <button
+                  onClick={() => {
+                    setIsFlipped(false);
+                    setCurrentIndex((prev) => (prev - 1 + activeCramCards.length) % activeCramCards.length);
+                  }}
+                  disabled={activeCramCards.length <= 1}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-[var(--glass-bg)] border border-[var(--glass-border-subtle)] text-[var(--fg-color)] hover:border-[var(--glass-border)] transition-colors disabled:opacity-40"
+                >
+                  <ChevronLeft size={14} /> Previous
+                </button>
+
+                <button
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-[var(--pill-bg)] border border-[var(--glass-border-subtle)] text-[var(--accent-primary)] hover:border-[var(--accent-primary)] transition-colors"
+                >
+                  <RotateCw size={13} /> {isFlipped ? 'Show Question' : 'Reveal Answer'}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsFlipped(false);
+                    setCurrentIndex((prev) => (prev + 1) % activeCramCards.length);
+                  }}
+                  disabled={activeCramCards.length <= 1}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-[var(--glass-bg)] border border-[var(--glass-border-subtle)] text-[var(--fg-color)] hover:border-[var(--glass-border)] transition-colors disabled:opacity-40"
+                >
+                  Next <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-8 text-center text-[var(--fg-muted)] rounded-2xl theme-surface border">
+              No cards match the active cram filter.
             </div>
           )}
         </div>
@@ -405,4 +563,5 @@ export function FlashcardStudio() {
     </div>
   );
 }
+
 export default FlashcardStudio;

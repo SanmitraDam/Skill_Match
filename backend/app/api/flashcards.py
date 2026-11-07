@@ -2,7 +2,9 @@
 SkillMatch DNA v15.0 — Multi-Stage Interview Readiness & Topic-Wise Spatial Flashcard API Router.
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
+from typing import List, Optional
+from pydantic import BaseModel
 from app.services.flashcard_service import (
     flashcard_service,
     FlashcardGenerateRequest,
@@ -51,13 +53,31 @@ async def advance_stage(req: PipelineAdvanceRequest):
     return flashcard_service.advance_stage(req)
 
 
-from pydantic import BaseModel
-from typing import List, Optional
-
 class PDFSectionGenerateRequest(BaseModel):
     document_title: str = "Uploaded Technical Manual.pdf"
     raw_text: Optional[str] = None
-    target_role: Optional[str] = "Distributed Systems Engineer"
+    target_role: Optional[str] = "Computer Science & Engineering"
+
+
+@router.post("/upload-pdf")
+async def upload_pdf_flashcards(
+    file: UploadFile = File(...),
+    target_role: Optional[str] = Form("Computer Science & Engineering")
+):
+    """
+    SkillMatch DNA v27.0: Upload technical PDF, parse multi-page text via PyMuPDF,
+    extract heading hierarchy, and synthesize 4-6 cards per chapter section.
+    """
+    try:
+        content = await file.read()
+        res = flashcard_service.parse_and_generate_document_flashcards(
+            filename=file.filename or "Uploaded_Document.pdf",
+            content_bytes=content
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/pdf-section-generate")
 async def generate_pdf_sectional_flashcards(req: PDFSectionGenerateRequest):
@@ -65,48 +85,11 @@ async def generate_pdf_sectional_flashcards(req: PDFSectionGenerateRequest):
     SkillMatch DNA v27.0: Section-wise PDF heading segmentation and QA flashcard synthesis.
     Synthesizes structured chapters and cards with initial Ebbinghaus decay parameters.
     """
-    sections = [
-        {
-            "section_id": "sec_01_sys_design",
-            "chapter": "Chapter 1: System Design Fundamentals",
-            "title": "1.1 Distributed Caching & Invalidation",
-            "word_count": 820,
-            "cards": [
-                {
-                    "card_id": "card_pdf_001",
-                    "topic": "Distributed Caching",
-                    "sub_skill": "Write-Through vs Write-Back",
-                    "question": "What is the primary trade-off between Write-Through and Write-Back caching in distributed clusters?",
-                    "answer": "Write-Through updates cache and database synchronously (strong consistency, higher latency). Write-Back writes to cache first and asynchronously drains to DB (low latency, risk of loss on crash).",
-                    "difficulty_level": 4,
-                    "stability_hours": 24.0,
-                    "initial_retention": 1.0
-                }
-            ]
-        },
-        {
-            "section_id": "sec_02_vllm",
-            "chapter": "Chapter 2: High-Throughput Inference",
-            "title": "2.1 PagedAttention & Speculative Decoding",
-            "word_count": 1100,
-            "cards": [
-                {
-                    "card_id": "card_pdf_002",
-                    "topic": "vLLM Inference",
-                    "sub_skill": "PagedAttention Memory Allocation",
-                    "question": "How does PagedAttention eliminate memory fragmentation during large-batch LLM serving?",
-                    "answer": "By adopting virtual memory paging principles: partitions KV cache into non-contiguous fixed-size blocks allocated on-demand.",
-                    "difficulty_level": 5,
-                    "stability_hours": 18.0,
-                    "initial_retention": 1.0
-                }
-            ]
-        }
-    ]
-    return {
-        "status": "SUCCESS",
-        "document": req.document_title,
-        "sections_count": len(sections),
-        "total_cards": sum(len(s["cards"]) for s in sections),
-        "sections": sections
-    }
+    try:
+        res = flashcard_service.parse_and_generate_document_flashcards(
+            filename=req.document_title,
+            raw_text=req.raw_text
+        )
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
