@@ -26,8 +26,82 @@ import AudioPlayerTile from '@/components/social/AudioPlayerTile';
 import { useSpatialStore } from '@/lib/store';
 import { getBackendUrl } from '@/lib/api-config';
 
+const TRACK_QUESTION_BANKS: Record<string, { skill: string; text: string }[]> = {
+  distributed: [
+    {
+      skill: "REST & gRPC Microservices",
+      text: "At a telecom operator with legacy network equipment, how do you debug a problem rooted in when not to use gRPC within a Grpc system? within a national identity and credentials platform — in that setting, the key constraint is: availability is a matter of civic function and trust. with emphasis on long-term maintainability. Then compare your approach to the most obvious alternative."
+    },
+    {
+      skill: "Distributed Caching & Redis Invalidation",
+      text: "How do you architect a multi-region Redis cache-aside cluster to prevent cache stampedes during peak traffic surges, and what are your TTL invalidation and stale-while-revalidate trade-offs?"
+    },
+    {
+      skill: "Raft Consensus & Distributed State",
+      text: "Explain how Raft consensus handles network partitions with split-brain scenarios, and how leader lease verification guarantees linearizable reads without log commit roundtrips."
+    },
+    {
+      skill: "PostgreSQL Concurrency & Connection Pools",
+      text: "When a relational database experiences high lock contention on write-heavy order processing tables, how do you optimize transaction isolation levels and PgBouncer connection pooling?"
+    },
+    {
+      skill: "Asynchronous Pipelines & Kafka Streaming",
+      text: "Walk me through how you design an exactly-once event streaming pipeline using Kafka transactional producers and idempotent consumers under severe node crash conditions."
+    },
+    {
+      skill: "Kubernetes & Production Reliability",
+      text: "How do you implement zero-downtime rolling deployments for stateful workloads in Kubernetes, and what health probe configurations prevent traffic routing to warm-up pods?"
+    }
+  ],
+  ai_infra: [
+    {
+      skill: "vLLM Serving & Continuous Batching",
+      text: "Walk me through the memory layout and allocation strategies of PagedAttention in vLLM, and how continuous batching eliminates KV cache fragmentation during high-concurrency token generation."
+    },
+    {
+      skill: "Speculative Decoding Latency",
+      text: "How does speculative decoding improve end-to-end latency for large parameter LLMs, and at what draft-model acceptance rate does the verification overhead exceed throughput gains?"
+    },
+    {
+      skill: "Vector Indexing & HNSW Trade-offs",
+      text: "Explain the trade-offs between HNSW graph recall and quantization memory footprints when serving sub-10ms semantic search queries at 100M vector scale."
+    },
+    {
+      skill: "PyTorch Sharding & Megatron Parallelism",
+      text: "Compare DeepSpeed ZeRO-3 parameter sharding with Megatron-LM tensor parallelism for training trillion-token foundation models across multi-node GPU clusters."
+    },
+    {
+      skill: "GPU SRAM IO-Aware FlashAttention",
+      text: "How does FlashAttention-2 optimize GPU SRAM tiled memory access to achieve IO-awareness, and why does standard self-attention become memory-bound?"
+    }
+  ],
+  fullstack: [
+    {
+      skill: "WebRTC Audio DSP & Full-Duplex Audio",
+      text: "How do you implement client-side acoustic noise cancellation and Voice Activity Detection (VAD) using the Web Audio API without causing audio pipeline clipping or UI thread lag?"
+    },
+    {
+      skill: "Next.js 14 Edge Streaming Architecture",
+      text: "How do you design a Server-Sent Events (SSE) streaming architecture in Next.js App Router that survives edge serverless cold starts and proxy connection drops?"
+    },
+    {
+      skill: "Optimistic State & CRDT Sync",
+      text: "When building a collaborative real-time editor with offline support, how do you resolve conflicting mutations using Conflict-Free Replicated Data Types (CRDTs) versus Operational Transformation?"
+    },
+    {
+      skill: "WebSocket Connection Resiliency",
+      text: "How would you design an auto-reconnecting WebSocket client with exponential backoff, jitter, and message acknowledgment guarantees across flaky mobile cellular networks?"
+    },
+    {
+      skill: "Browser Performance & WebAssembly",
+      text: "Where does compiling compute-heavy tasks into WebAssembly deliver 10x performance gains over JavaScript, and how do you minimize serialization costs across the WASM boundary?"
+    }
+  ]
+};
+
 export function VoiceInterview() {
   const [interviewId, setInterviewId] = useState<string | null>(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState<InterviewQuestion | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [fsmState, setFsmState] = useState<FSMState>('IDLE');
@@ -225,31 +299,89 @@ export function VoiceInterview() {
   // --------------------------------------------------------------------------
   // Flow: Start Interview & Fetch Question
   // --------------------------------------------------------------------------
+  const advanceToNextQuestion = useCallback((overrideNextQ?: InterviewQuestion) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch {}
+    }
+    setStreamedText("");
+    setIsStreamingResponse(false);
+    setAccumulatedTranscript("");
+    setLiveInterimTranscript("");
+
+    let nextQ: InterviewQuestion;
+    if (overrideNextQ) {
+      nextQ = overrideNextQ;
+    } else {
+      const bank = TRACK_QUESTION_BANKS[selectedTrack] || TRACK_QUESTION_BANKS.distributed;
+      const nextIdx = (questionIndex + 1) % bank.length;
+      setQuestionIndex(nextIdx);
+      nextQ = {
+        question_text: bank[nextIdx].text,
+        skill_targeted: bank[nextIdx].skill,
+        audio_url: undefined
+      };
+    }
+
+    setCurrentQuestion(nextQ);
+    setFsmState('PLAYING_AUDIO');
+    speakAI(nextQ.question_text);
+  }, [selectedTrack, questionIndex, speakAI]);
+
   const startInterview = async () => {
+    const bank = TRACK_QUESTION_BANKS[selectedTrack] || TRACK_QUESTION_BANKS.distributed;
+    const initialQ: InterviewQuestion = {
+      question_text: bank[0].text,
+      skill_targeted: bank[0].skill,
+      audio_url: undefined
+    };
+
     try {
       const data = await startIntMut.mutateAsync(1);
       setInterviewId(data.interview_id);
+      setQuestionIndex(0);
       setFsmState('IDLE');
       await fetchNextQuestion(data.interview_id);
     } catch (err) {
-      console.error("Start interview error:", err);
+      console.warn("Start interview backend error, using offline studio session:", err);
+      const mockId = `session_${Date.now()}`;
+      setInterviewId(mockId);
+      setQuestionIndex(0);
+      setCurrentQuestion(initialQ);
+      setFsmState('PLAYING_AUDIO');
+      speakAI(initialQ.question_text);
     }
   };
 
   const fetchNextQuestion = async (id: string) => {
+    const bank = TRACK_QUESTION_BANKS[selectedTrack] || TRACK_QUESTION_BANKS.distributed;
     try {
       const q = await nextQuestMut.mutateAsync(id);
-      setCurrentQuestion(q);
-      setLastEvaluation(null);
-      setStreamedText("");
-      setAccumulatedTranscript("");
-      setLiveInterimTranscript("");
-
-      // AI speaks the question aloud in real time
-      speakAI(q.question_text);
+      if (q && q.question_text) {
+        setCurrentQuestion(q);
+        setLastEvaluation(null);
+        setStreamedText("");
+        setAccumulatedTranscript("");
+        setLiveInterimTranscript("");
+        speakAI(q.question_text);
+        return;
+      }
     } catch (err) {
-      console.error("Fetch question error:", err);
+      console.warn("Fetch question error fallback to local bank:", err);
     }
+
+    const nextIdx = (questionIndex + 1) % bank.length;
+    setQuestionIndex(nextIdx);
+    const fallbackQ: InterviewQuestion = {
+      question_text: bank[nextIdx].text,
+      skill_targeted: bank[nextIdx].skill,
+      audio_url: undefined
+    };
+    setCurrentQuestion(fallbackQ);
+    setLastEvaluation(null);
+    setStreamedText("");
+    setAccumulatedTranscript("");
+    setLiveInterimTranscript("");
+    speakAI(fallbackQ.question_text);
   };
 
   // --------------------------------------------------------------------------
@@ -404,37 +536,89 @@ export function VoiceInterview() {
   // --------------------------------------------------------------------------
   // PRD v2.1 (FR-05): Smart Surrender & Zero-Delay Auto-Advancement
   // --------------------------------------------------------------------------
-  const triggerSurrenderAutoAdvance = async (detectedPhrase: string) => {
-    if (!interviewId || fsmState === 'PROCESSING_VAD' || fsmState === 'STREAMING_LLM') return;
+  const triggerSurrenderAutoAdvance = (detectedPhrase: string) => {
+    // 1. Immediately cancel active speech synthesis & audio
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch {}
+    }
 
-    setSurrenderAlert(`Auto-Advance: Surrender intent detected ("${detectedPhrase}"). Advancing immediately with zero delay.`);
-    setIsRecording(false);
-    setFsmState('IDLE');
-
+    // 2. Stop speech recognition engine
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch {}
       recognitionRef.current = null;
     }
+
+    // 3. Stop audio media recorder and stream tracks
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.onstop = null;
+        mediaRecorderRef.current.stop();
+      } catch {}
+    }
+    if (mediaStreamRef.current) {
+      try {
+        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      } catch {}
+      mediaStreamRef.current = null;
+    }
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
     }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
 
-    // Immediately log 0 score without waiting
-    try {
-      await submitAnsMut.mutateAsync({
+    setIsRecording(false);
+    setLiveInterimTranscript("");
+    setAccumulatedTranscript("");
+    setFsmState('IDLE');
+
+    // 4. Show high-visibility toast alert immediately
+    setSurrenderAlert(`Surrender intent: "${detectedPhrase}". Pivoting to next technical question with zero delay.`);
+
+    // 5. Update transcript HUD and session history immediately
+    const surrenderNote = `[Candidate passed / surrendered: "${detectedPhrase}"]`;
+    const aiPivot = "Understood. Question recorded as passed without penalty. Pivoting immediately to the next technical challenge.";
+    setTranscript((prev) => [
+      ...prev,
+      { role: 'user', text: surrenderNote },
+      { role: 'ai', text: aiPivot }
+    ]);
+
+    // 6. Update evaluation HUD
+    setLastEvaluation({
+      overall_feedback: "Auto-Advancement Triggered: Candidate passed / indicated 'don't know'. Advancing immediately with zero hesitation penalty.",
+      technical_accuracy_score: 0.0,
+      communication_clarity_score: 85.0,
+      key_strengths: ["Instant decision making", "Zero stalling or false confidence"],
+      key_improvement_areas: ["Review targeted technical topic in study flashcards"],
+      speech_metrics: {
+        cadence_wpm: 0,
+        filler_words_count: 0,
+        filler_words_detected: [],
+        pacing_rating: "Prompt",
+        total_words: 4,
+        articulation_rate: 4.0,
+        hesitation_index: 0
+      },
+      rubric_breakdown: {
+        technical_accuracy: { score: 0.0, weight: 0.4, status: "Skipped" },
+        problem_solving: { score: 0.0, weight: 0.25, status: "Skipped" },
+        system_design: { score: 0.0, weight: 0.2, status: "Skipped" },
+        communication_clarity: { score: 85.0, weight: 0.15, status: "Direct" }
+      }
+    });
+
+    // 7. Fire non-blocking backend sync in background
+    if (interviewId) {
+      submitAnsMut.mutateAsync({
         interviewId,
         transcriptText: `I don't know (${detectedPhrase})`
-      });
-    } catch {}
+      }).catch((err) => console.warn("Background surrender sync:", err));
+    }
 
-    // Zero-delay transition to next question
-    setTimeout(async () => {
+    // 8. Immediately advance question in 350ms (responsive, snappy UX)
+    setTimeout(() => {
       setSurrenderAlert(null);
-      await fetchNextQuestion(interviewId);
-    }, 1200);
+      advanceToNextQuestion();
+    }, 350);
   };
 
   // --------------------------------------------------------------------------
@@ -1237,16 +1421,24 @@ export function VoiceInterview() {
 
             {/* Next Question */}
             <button
-              onClick={() => interviewId && fetchNextQuestion(interviewId)}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold transition-all"
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                  try { window.speechSynthesis.cancel(); } catch {}
+                }
+                advanceToNextQuestion();
+              }}
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-md"
+              title="Skip to next question immediately"
             >
               <RefreshCw size={14} /> Next Q
             </button>
 
             {/* FR-05: Smart Surrender Button (Zero-delay auto-advance) */}
             <button
+              type="button"
               onClick={() => triggerSurrenderAutoAdvance("Pass / I don't know")}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.2)]"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-rose-500/25 hover:bg-rose-500/35 text-rose-300 border border-rose-500/50 text-xs font-bold transition-all active:scale-95 shadow-[0_0_15px_rgba(244,63,94,0.25)] cursor-pointer"
               title="Auto-advance immediately if you don't know the answer"
             >
               <Square size={13} className="text-rose-400" /> Pass / Don&apos;t Know

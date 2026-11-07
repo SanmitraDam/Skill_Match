@@ -241,16 +241,30 @@ async def submit_answer(
     # Record last answer for streaming turn synthesis
     session["last_answer"] = transcript
 
-    # 5. Research-level multi-dimensional evaluation
-    evaluation = await voice_interview_service.evaluate_answer(
-        session["current_skill"],
-        session["current_question"],
-        transcript
-    )
-
+    # 5. Research-level multi-dimensional evaluation (FR-05 zero-delay surrender optimization)
     if is_surrender:
-        evaluation.technical_accuracy_score = 0.0
-        evaluation.overall_feedback = "Auto-Advancement Triggered: Surrender intent detected ('I don't know'). Zero hesitation delay logged; advancing to the next technical topic."
+        evaluation = InterviewEvaluation(
+            overall_feedback="Auto-Advancement Triggered: Surrender intent detected ('I don't know'). Zero hesitation delay logged; advancing immediately to the next technical topic.",
+            technical_accuracy_score=0.0,
+            prosody_metrics={
+                "pause_duration": 0.1,
+                "filler_word_count": 0,
+                "speech_rate_wpm": 0.0,
+                "confidence_score": 0.85
+            },
+            rubric_breakdown={
+                "technical_accuracy": 0.0,
+                "problem_solving": 0.0,
+                "system_design": 0.0,
+                "communication_clarity": 85.0
+            }
+        )
+    else:
+        evaluation = await voice_interview_service.evaluate_answer(
+            session["current_skill"],
+            session["current_question"],
+            transcript
+        )
 
     # Store score and history
     session["scores"].append(evaluation.technical_accuracy_score)
